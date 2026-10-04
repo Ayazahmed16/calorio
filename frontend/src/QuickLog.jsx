@@ -1,5 +1,6 @@
 import { useState } from 'react'
 import { api } from './api'
+import { PrimaryButton } from './ui'
 
 export default function QuickLog({ token, mealType, onSaved }) {
   const [text, setText] = useState('')
@@ -53,30 +54,37 @@ export default function QuickLog({ token, mealType, onSaved }) {
   }
 
   return (
-    <div>
-      <h3>Quick log</h3>
+    <div className="mt-6 pt-6 border-t border-white/10">
+      <h3 className="!mt-0">Quick log</h3>
       <form onSubmit={parse}>
         <input
+          className="w-full md:w-96"
           placeholder="e.g. 2 rotis, dal and a samosa"
           value={text}
           onChange={e => setText(e.target.value)}
           required
         />
-        <button type="submit" disabled={loading}>{loading ? 'Reading...' : 'Parse'}</button>
+        <PrimaryButton type="submit" disabled={loading}>{loading ? 'Reading...' : 'Parse'}</PrimaryButton>
       </form>
-      {error && <p style={{ color: 'red' }}>{error}</p>}
+      {error && <p className="font-mono text-xs text-red-400 uppercase tracking-widest mt-2">{error}</p>}
 
       {preview && (
-        <div>
-          <p>Check this before saving:</p>
+        <div className="bg-[#131315] border border-white/10 p-4 mt-3">
+          <p className="font-mono text-[11px] text-neutral-400 uppercase tracking-widest mb-3">
+            Check this before saving
+          </p>
           <ul>
             {preview.items.map((it, i) => (
-              <li key={i}>
-                {it.food.name} x{it.servings} = {Math.round(it.food.calories * it.servings)} kcal
+              <li key={i} className="font-mono text-sm text-white">
+                {it.food.name} x{it.servings}
+                <span className="text-neutral-500"> = {Math.round(it.food.calories * it.servings)} kcal</span>
               </li>
             ))}
             {preview.unmatched.map((u, i) => (
-              <li key={i}>{u.name} ~{u.calories} kcal (estimate)</li>
+              <li key={i} className="font-mono text-sm text-white">
+                {u.name}
+                <span className="text-neutral-500"> ~{u.calories} kcal (estimate)</span>
+              </li>
             ))}
           </ul>
           <button onClick={confirm}>Confirm</button>

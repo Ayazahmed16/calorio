@@ -1,5 +1,6 @@
 import { useState } from 'react'
 import { api } from './api'
+import { PrimaryButton } from './ui'
 
 export default function RestaurantEstimate({ token, mealType, onSaved }) {
   const [text, setText] = useState('')
@@ -47,38 +48,43 @@ export default function RestaurantEstimate({ token, mealType, onSaved }) {
   }
 
   return (
-    <div>
-      <h3>Restaurant estimate</h3>
+    <div className="mt-6 pt-6 border-t border-white/10">
+      <h3 className="!mt-0">Restaurant estimate</h3>
       <form onSubmit={estimate}>
         <input
+          className="w-full md:w-96"
           placeholder="e.g. chicken biryani, restaurant, large"
           value={text}
           onChange={e => setText(e.target.value)}
           required
         />
-        <button type="submit" disabled={loading}>{loading ? 'Estimating...' : 'Estimate'}</button>
+        <PrimaryButton type="submit" disabled={loading}>{loading ? 'Estimating...' : 'Estimate'}</PrimaryButton>
       </form>
-      {error && <p style={{ color: 'red' }}>{error}</p>}
+      {error && <p className="font-mono text-xs text-red-400 uppercase tracking-widest mt-2">{error}</p>}
 
       {result && (
-        <div>
-          <p>
-            <strong>{result.name}: {result.low} - {result.high} kcal</strong> (typical {result.mid})
+        <div className="bg-[#131315] border border-white/10 p-4 mt-3">
+          <p className="font-mono text-sm text-white mb-1">
+            <strong>{result.name}: {result.low} - {result.high} kcal</strong>
+            <span className="text-neutral-500"> (typical {result.mid})</span>
           </p>
-          <p>{result.note}</p>
-          <p>Estimate only. Real portions and oil vary.</p>
+          <p className="font-mono text-xs text-neutral-400 mb-1">{result.note}</p>
+          <p className="font-mono text-[11px] text-neutral-600 uppercase tracking-widest mb-4">
+            Estimate only. Real portions and oil vary.
+          </p>
           {['low', 'mid', 'high'].map(key => (
-            <label key={key} style={{ marginRight: 12 }}>
+            <label key={key} className="font-mono text-sm text-neutral-300 mr-5">
               <input
                 type="radio"
                 name="estimate-choice"
                 checked={choice === key}
                 onChange={() => setChoice(key)}
+                style={{ padding: 0, margin: '0 0.4rem 0 0' }}
               />
               {key === 'mid' ? 'Typical' : key === 'low' ? 'Low' : 'High'} ({result[key]})
             </label>
           ))}
-          <div>
+          <div className="mt-4">
             <button onClick={log}>Log {result[choice]} kcal</button>
             <button onClick={() => setResult(null)}>Cancel</button>
           </div>

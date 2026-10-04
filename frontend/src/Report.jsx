@@ -1,5 +1,6 @@
 import { useState, useEffect } from 'react'
 import { api, BASE } from './api'
+import { Card, PrimaryButton } from './ui'
 
 export default function Report({ token }) {
   const [email, setEmail] = useState('')
@@ -51,9 +52,10 @@ export default function Report({ token }) {
   }
 
   return (
-    <div>
-      <h2>Weekly report</h2>
-      <button onClick={download}>Download this week's PDF</button>
+    <Card title="Weekly report">
+      <div className="mb-6">
+        <PrimaryButton onClick={download}>Download this week's PDF</PrimaryButton>
+      </div>
 
       <form onSubmit={save}>
         <input
@@ -62,15 +64,20 @@ export default function Report({ token }) {
           value={email}
           onChange={e => setEmail(e.target.value)}
         />
-        <label>
-          <input type="checkbox" checked={weekly} onChange={e => setWeekly(e.target.checked)} />
+        <label className="font-mono text-sm text-neutral-300 block my-3">
+          <input
+            type="checkbox"
+            checked={weekly}
+            onChange={e => setWeekly(e.target.checked)}
+            style={{ padding: 0, margin: '0 0.6rem 0 0' }}
+          />
           Email me the report every Sunday
         </label>
         <button type="submit">Save</button>
       </form>
 
-      {message && <p>{message}</p>}
-      {error && <p style={{ color: 'red' }}>{error}</p>}
-    </div>
+      {message && <p className="font-mono text-xs text-[#22c55e] uppercase tracking-widest mt-3">{message}</p>}
+      {error && <p className="font-mono text-xs text-red-400 uppercase tracking-widest mt-3">{error}</p>}
+    </Card>
   )
 }

@@ -1,6 +1,7 @@
 import { useState, useEffect, useRef } from 'react'
 import { Html5Qrcode, Html5QrcodeSupportedFormats } from 'html5-qrcode'
 import { api } from './api'
+import { PrimaryButton } from './ui'
 
 export default function BarcodeScan({ token, mealType, onSaved }) {
   const [manual, setManual] = useState('')
@@ -91,11 +92,11 @@ export default function BarcodeScan({ token, mealType, onSaved }) {
   }
 
   return (
-    <div>
-      <h3>Scan barcode</h3>
+    <div className="mt-6 pt-6 border-t border-white/10">
+      <h3 className="!mt-0">Scan barcode</h3>
 
       {scanning ? (
-        <div>
+        <div className="mb-4">
           <div id="barcode-reader" style={{ width: 300, margin: '0 auto' }} />
           <button onClick={() => setScanning(false)}>Stop camera</button>
         </div>
@@ -103,29 +104,31 @@ export default function BarcodeScan({ token, mealType, onSaved }) {
         <button onClick={() => { setError(''); setScanning(true) }}>Scan with camera</button>
       )}
 
-      <form onSubmit={lookupManual}>
+      <form onSubmit={lookupManual} className="mt-2">
         <input
           placeholder="or type barcode digits"
           value={manual}
           onChange={e => setManual(e.target.value)}
           inputMode="numeric"
         />
-        <button type="submit" disabled={loading}>{loading ? 'Looking...' : 'Look up'}</button>
+        <PrimaryButton type="submit" disabled={loading}>{loading ? 'Looking...' : 'Look up'}</PrimaryButton>
       </form>
 
-      {error && <p style={{ color: 'red' }}>{error}</p>}
+      {error && <p className="font-mono text-xs text-red-400 uppercase tracking-widest mt-2">{error}</p>}
 
       {product && (
-        <div>
-          <p>
+        <div className="bg-[#131315] border border-white/10 p-4 mt-3">
+          <p className="font-mono text-sm text-white mb-1">
             <strong>{product.name}</strong> {product.brand && `(${product.brand})`}
           </p>
-          <p>
+          <p className="font-mono text-xs text-neutral-400 mb-1">
             Per 100 g: {product.per100.calories} kcal, P {product.per100.protein} /
             C {product.per100.carbs} / F {product.per100.fat}
           </p>
-          {product.serving_size && <p>Serving: {product.serving_size}</p>}
-          <label>
+          {product.serving_size && (
+            <p className="font-mono text-xs text-neutral-400 mb-3">Serving: {product.serving_size}</p>
+          )}
+          <label className="font-mono text-sm text-neutral-300">
             Grams eaten:{' '}
             <input
               type="number"
@@ -135,12 +138,14 @@ export default function BarcodeScan({ token, mealType, onSaved }) {
               onChange={e => setGrams(Number(e.target.value))}
             />
           </label>
-          <p>
+          <p className="font-mono text-sm text-white mb-3">
             You ate: {Math.round((product.per100.calories * grams) / 100)} kcal
           </p>
           <button onClick={log} disabled={!grams || grams <= 0}>Log</button>
           <button onClick={() => setProduct(null)}>Cancel</button>
-          <p style={{ fontSize: 12 }}>Data from Open Food Facts (ODbL license).</p>
+          <p className="font-mono text-[11px] text-neutral-600 mt-3">
+            Data from Open Food Facts (ODbL license).
+          </p>
         </div>
       )}
     </div>

@@ -1,5 +1,6 @@
 import { useState, useEffect } from 'react'
 import { api, BASE } from './api'
+import { Card } from './ui'
 
 const METRIC_LABEL = { steps: 'Steps', protein: 'Protein (g)', logging: 'Days logged' }
 // http://127.0.0.1:8000/api  ->  ws://127.0.0.1:8000   (https becomes wss)
@@ -100,32 +101,45 @@ export default function Challenges({ token, refresh }) {
   }
 
   return (
-    <div>
-      <h2>Challenges</h2>
-      {error && <p style={{ color: 'red' }}>{error}</p>}
+    <Card title="Challenges">
+      {error && <p className="font-mono text-xs text-red-400 uppercase tracking-widest mb-4">{error}</p>}
 
-      <h3>My challenges</h3>
+      <h3 className="!mt-0">My challenges</h3>
       <ul>
         {list.map(c => (
-          <li key={c.id}>
-            {c.name} - {METRIC_LABEL[c.metric]} ({c.status}, {c.members} members)
-            <button onClick={() => open(c.id)}>Open</button>
+          <li key={c.id} className="font-mono text-sm text-white">
+            {c.name}
+            <span className="text-neutral-500"> - {METRIC_LABEL[c.metric]} ({c.status}, {c.members} members)</span>
+            <button className="ml-3" onClick={() => open(c.id)}>Open</button>
           </li>
         ))}
-        {list.length === 0 && <li>No challenges yet.</li>}
+        {list.length === 0 && (
+          <li className="font-mono text-xs text-neutral-600 uppercase tracking-widest">No challenges yet</li>
+        )}
       </ul>
 
       {detail && (
-        <div>
-          <h3>{detail.name} {live && <small>● Live</small>}</h3>
-          <p>
+        <div className="bg-[#131315] border border-white/10 p-5 mt-5">
+          <p className="font-mono text-lg font-bold text-white uppercase tracking-tighter mb-1">
+            {detail.name}
+            {live && <span className="text-[#22c55e] text-xs ml-3 tracking-widest">● LIVE</span>}
+          </p>
+          <p className="font-mono text-xs text-neutral-400 mb-3">
             {METRIC_LABEL[detail.metric]}, {detail.start_date} to {detail.end_date} ({detail.status})
           </p>
-          <p>Invite code: <strong>{detail.invite_code}</strong></p>
-          <ol style={{ listStyle: 'none', padding: 0 }}>
+          <p className="font-mono text-sm text-neutral-400 mb-4">
+            Invite code: <strong className="text-white">{detail.invite_code}</strong>
+          </p>
+          <ol style={{ listStyle: 'none', padding: 0 }} className="mb-4">
             {detail.leaderboard.map(r => (
-              <li key={r.id} style={{ fontWeight: r.username === detail.me ? 'bold' : 'normal' }}>
-                #{r.rank} {r.username}{r.username === detail.me ? ' (you)' : ''}: {r.score}
+              <li
+                key={r.id}
+                className={`font-mono text-sm flex justify-between border-b border-white/5 py-2 ${
+                  r.username === detail.me ? 'text-white font-bold' : 'text-neutral-400'
+                }`}
+              >
+                <span>#{r.rank} {r.username}{r.username === detail.me ? ' (you)' : ''}</span>
+                <span>{r.score}</span>
               </li>
             ))}
           </ol>
@@ -160,6 +174,6 @@ export default function Challenges({ token, refresh }) {
         <input placeholder="Invite code" value={code} onChange={e => setCode(e.target.value)} required />
         <button type="submit">Join</button>
       </form>
-    </div>
+    </Card>
   )
 }

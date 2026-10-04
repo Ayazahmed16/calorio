@@ -1,5 +1,6 @@
 import { useState } from 'react'
 import { api } from './api'
+import { PrimaryButton } from './ui'
 
 export default function Recipes({ token, mealType, onSaved }) {
   const [text, setText] = useState('')
@@ -41,37 +42,45 @@ export default function Recipes({ token, mealType, onSaved }) {
   }
 
   return (
-    <div>
-      <h3>Cook from my fridge</h3>
+    <div className="mt-6 pt-6 border-t border-white/10">
+      <h3 className="!mt-0">Cook from my fridge</h3>
       <form onSubmit={find}>
         <input
+          className="w-full md:w-96"
           placeholder="eggs, spinach, rice, paneer"
           value={text}
           onChange={e => setText(e.target.value)}
           required
         />
-        <button type="submit" disabled={loading}>{loading ? 'Thinking...' : 'Find recipes'}</button>
+        <PrimaryButton type="submit" disabled={loading}>{loading ? 'Thinking...' : 'Find recipes'}</PrimaryButton>
       </form>
 
-      {error && <p style={{ color: 'red' }}>{error}</p>}
+      {error && <p className="font-mono text-xs text-red-400 uppercase tracking-widest mt-2">{error}</p>}
 
-      {result && result.left.calories <= 0 && <p>You have reached your calorie goal for today.</p>}
+      {result && result.left.calories <= 0 && (
+        <p className="font-mono text-sm text-neutral-400 mt-3">You have reached your calorie goal for today.</p>
+      )}
 
       {result && result.left.calories > 0 && result.recipes.length === 0 && (
-        <p>No recipe fit what is left. Try other ingredients.</p>
+        <p className="font-mono text-sm text-neutral-400 mt-3">No recipe fit what is left. Try other ingredients.</p>
       )}
 
       {result && result.recipes.map((r, i) => (
-        <div key={i}>
-          <p>
-            <strong>{r.name}</strong>: {r.calories} kcal, {r.protein} g protein
-            {r.minutes > 0 && ` (${r.minutes} min)`}
+        <div key={i} className="bg-[#131315] border border-white/10 p-4 mt-3">
+          <p className="font-mono text-sm text-white mb-1">
+            <strong>{r.name}</strong>
+            <span className="text-neutral-500">
+              : {r.calories} kcal, {r.protein} g protein
+              {r.minutes > 0 && ` (${r.minutes} min)`}
+            </span>
           </p>
-          <p>Uses: {r.ingredients_used.join(', ') || '-'}</p>
-          {r.extra_needed.length > 0 && <p>Also need: {r.extra_needed.join(', ')}</p>}
-          <details>
-            <summary>Steps</summary>
-            <ol>
+          <p className="font-mono text-xs text-neutral-400 mb-1">Uses: {r.ingredients_used.join(', ') || '-'}</p>
+          {r.extra_needed.length > 0 && (
+            <p className="font-mono text-xs text-neutral-400 mb-1">Also need: {r.extra_needed.join(', ')}</p>
+          )}
+          <details className="font-mono text-sm text-neutral-300 my-3">
+            <summary className="cursor-pointer text-neutral-400 uppercase text-[11px] tracking-widest">Steps</summary>
+            <ol className="list-decimal ml-5 mt-2">
               {r.steps.map((s, j) => <li key={j}>{s}</li>)}
             </ol>
           </details>
@@ -79,7 +88,9 @@ export default function Recipes({ token, mealType, onSaved }) {
         </div>
       ))}
 
-      {result && result.recipes.length > 0 && <p>Calories are estimates.</p>}
+      {result && result.recipes.length > 0 && (
+        <p className="font-mono text-[11px] text-neutral-600 uppercase tracking-widest mt-3">Calories are estimates.</p>
+      )}
     </div>
   )
 }
