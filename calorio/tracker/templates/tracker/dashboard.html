@@ -1,0 +1,48 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Calorio</title>
+</head>
+<body>
+    <h1><a href="{% url 'add_meal' %}">+ Add Meal</a></h1>
+
+    <p>Logged in as {{ user.username }}</p>
+    <form method="post" action="{% url 'logout' %}">
+        {% csrf_token %}
+        <button type="submit">Logout</button>
+    </form>
+
+    <h2>Today</h2>
+    <p>Calories: {{ today_calories }}</p>
+    <p>Protein: {{ today_protein }} g</p>
+    <p>Steps: {{ today_steps }}</p>
+
+    <h2>Daily history</h2>
+    <ul>
+        {% for d in daily %}
+            <li>{{ d.day }}: {{ d.calories }} kcal, {{ d.protein }} g protein</li>
+        {% empty %}
+            <li>No history yet.</li>
+        {% endfor %}
+    </ul>
+
+    <h2>Meals</h2>
+    <ul>
+        {% for meal in meals %}
+            <li>{{ meal.name }} - {{ meal.calories }} kcal, {{ meal.protein }} g protein</li>
+        {% empty %}
+            <li>No meals yet.</li>
+        {% endfor %}
+    </ul>
+
+    <h2>Activity</h2>
+    <ul>
+        {% for a in activities %}
+            <li>{{ a.date }}: {{ a.steps }} steps</li>
+        {% empty %}
+            <li>No activity yet.</li>
+        {% endfor %}
+    </ul>
+</body>
+
+</html>
