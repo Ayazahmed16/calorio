@@ -1,3 +1,77 @@
+@import "tailwindcss";
+
+.material-symbols-outlined {
+  font-family: 'Material Symbols Outlined';
+  font-weight: normal;
+  font-style: normal;
+  font-size: 24px;
+  line-height: 1;
+  display: inline-block;
+  white-space: nowrap;
+  direction: ltr;
+  -webkit-font-smoothing: antialiased;
+}
+
+@theme {
+  --font-sans: "Instrument Sans", ui-sans-serif, system-ui, sans-serif;
+  --font-mono: "JetBrains Mono", ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+}
+
+@layer base {
+  body {
+    @apply bg-[#131315] text-[#e5e1e4] antialiased selection:bg-white selection:text-black;
+  }
+
+  input, select, textarea {
+    background: #18181b;
+    border: 1px solid #27272a;
+    color: #fff;
+    padding: 0.5rem 0.75rem;
+    font-family: var(--font-mono);
+    font-size: 0.875rem;
+    outline: none;
+    margin: 0 0.5rem 0.5rem 0;
+  }
+  input:focus, select:focus, textarea:focus { border-color: rgba(255,255,255,0.3); }
+
+  button {
+    cursor: pointer;
+    border: 1px solid rgba(255,255,255,0.2);
+    color: #d4d4d4;
+    padding: 0.4rem 0.9rem;
+    margin: 0 0.5rem 0.5rem 0;
+    font-family: var(--font-mono);
+    font-size: 11px;
+    text-transform: uppercase;
+    letter-spacing: 0.1em;
+  }
+  button:hover { color: #fff; border-color: rgba(255,255,255,0.4); }
+
+  h2 {
+    font-size: 1.125rem;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: -0.02em;
+    color: #fff;
+    margin: 1.5rem 0 0.75rem;
+  }
+  h3 {
+    font-family: var(--font-mono);
+    font-size: 11px;
+    text-transform: uppercase;
+    letter-spacing: 0.1em;
+    color: #a3a3a3;
+    margin: 1rem 0 0.5rem;
+  }
+  li { margin-bottom: 0.5rem; }
+}
+
+@layer utilities {
+  .custom-scrollbar::-webkit-scrollbar { width: 4px; height: 4px; }
+  .custom-scrollbar::-webkit-scrollbar-track { background: transparent; }
+  .custom-scrollbar::-webkit-scrollbar-thumb { background: #474747; border-radius: 2px; }
+}
+
 @keyframes float-drift {
   0% {
     transform: translate(0, 0) rotate(var(--rot, 0deg));
