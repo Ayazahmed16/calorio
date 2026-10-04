@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react'
 import { api } from './api'
-
+import { PageShell, PageHeader, Card } from './ui'
 function Streak({ label, data }) {
   return (
     <p>
@@ -18,21 +18,28 @@ export default function Streaks({ token, refresh }) {
 
   if (!data) return null
 
-  return (
-    <div>
-      <h2>Streaks</h2>
+return (
+  <PageShell>
+    <PageHeader kicker="Daily Tracking / Active" title="Streaks" />
+
+    <div className="grid md:grid-cols-3 gap-4 mb-12">
       <Streak label="Logging" data={data.streaks.logging} />
       <Streak label="Protein goal" data={data.streaks.protein} />
       <Streak label="8000 steps" data={data.streaks.steps} />
-
-      <h3>Badges</h3>
-      <ul>
-        {data.badges.map(b => (
-          <li key={b.code} style={{ opacity: b.earned ? 1 : 0.4 }}>
-            {b.earned ? '🏅' : '🔒'} <strong>{b.name}</strong> - {b.description}
-          </li>
-        ))}
-      </ul>
     </div>
-  )
+
+    <p className="font-mono text-[11px] text-neutral-400 uppercase tracking-widest mb-4">Badges</p>
+    <ul className="grid md:grid-cols-2 gap-3">
+      {data.badges.map(b => (
+        <li
+          key={b.code}
+          className="bg-[#1c1b1d] border border-white/10 p-4 font-mono text-sm text-white"
+          style={{ opacity: b.earned ? 1 : 0.4 }}
+        >
+          {b.earned ? '🏅' : '🔒'} <strong>{b.name}</strong> - {b.desc}
+        </li>
+      ))}
+    </ul>
+  </PageShell>
+)
 }
