@@ -1,0 +1,37 @@
+{% extends "base.html" %}
+{% block title %}Activity{% endblock %}
+{% block crumb %}Activity{% endblock %}
+{% block content %}
+<div class="flex items-end justify-between mb-10">
+    <div>
+        <p class="font-mono text-[10px] uppercase tracking-widest text-cyan-100/40 mb-2">History</p>
+        <h2 class="text-5xl font-black tracking-tighter text-white">All Activity</h2>
+    </div>
+    <a href="{% url 'add_activity' %}" class="px-8 py-3 bg-cyan-500 text-black font-bold hover:bg-cyan-400 transition-all active:scale-95">Add Activity</a>
+</div>
+
+<form method="get" class="flex flex-wrap items-end gap-4 mb-6">
+    <div><label class="lbl" for="f-from">From</label><input id="f-from" type="date" name="from" value="{{ f_from }}" class="field"></div>
+    <div><label class="lbl" for="f-to">To</label><input id="f-to" type="date" name="to" value="{{ f_to }}" class="field"></div>
+    <button type="submit" class="px-6 py-3 bg-cyan-500 text-black font-bold text-sm hover:bg-cyan-400 transition-all active:scale-95 cursor-pointer">Filter</button>
+    {% if filtered %}<a href="{% url 'activity_list' %}" class="px-4 py-3 text-cyan-100/60 hover:text-white font-mono text-xs">Clear</a>{% endif %}
+</form>
+
+<div class="bg-[#0f1d20] border border-white/5 rounded-sm overflow-hidden shadow-2xl">
+    <div class="hidden md:grid grid-cols-12 gap-4 px-8 py-4 bg-[#1a3338]/30 border-b border-white/5 font-mono text-[10px] uppercase tracking-widest text-cyan-100/40">
+        <span class="col-span-3">Date</span><span class="col-span-3">Steps</span><span class="col-span-2">Calories Burned</span><span class="col-span-3">Type</span><span class="col-span-1"></span>
+    </div>
+    {% for activity in activities %}
+    <div style="--i:{{ forloop.counter0 }}" class="row-in {% if request.GET.new == activity.id|stringformat:'s' %}flash{% endif %} grid grid-cols-12 gap-4 px-8 py-4 border-b border-white/5 hover:bg-white/5 items-center">
+        <span class="col-span-6 md:col-span-3 font-mono text-xs text-cyan-100/60">{{ activity.date }}</span>
+        <span class="col-span-6 md:col-span-3 text-white font-medium">{{ activity.steps }} steps</span>
+        <span class="col-span-6 md:col-span-2 font-mono text-sm text-white">{{ activity.calories_burned|floatformat:"-1" }} cal</span>
+        <span class="col-span-6 md:col-span-3 font-mono text-[10px] uppercase tracking-widest text-cyan-100/60">{% if activity.activity_type %}{{ activity.activity_type }}{% else %}&mdash;{% endif %}</span>
+        <span class="col-span-12 md:col-span-1 flex md:justify-end gap-3"><a href="{% url 'edit_activity' activity.pk %}" title="Edit" class="material-symbols-outlined text-cyan-100/50 hover:text-cyan-400" style="font-size:18px">edit</a><a href="{% url 'delete_activity' activity.pk %}" title="Delete" class="material-symbols-outlined text-cyan-100/50 hover:text-red-400" style="font-size:18px">delete</a></span>
+    </div>
+    {% empty %}
+    <p class="px-8 py-8 font-mono text-xs text-cyan-100/40">{% if filtered %}No activity matches these dates.{% else %}No activity logged yet.{% endif %}</p>
+    {% endfor %}
+</div>
+{% include "partials/pager.html" %}
+{% endblock %}

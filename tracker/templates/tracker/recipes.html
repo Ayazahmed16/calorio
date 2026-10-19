@@ -1,0 +1,41 @@
+{% extends "base.html" %}
+{% block title %}Recipes{% endblock %}
+{% block crumb %}Recipes{% endblock %}
+{% block content %}
+<div class="mb-8">
+    <p class="font-mono text-[10px] uppercase tracking-widest text-cyan-100/40 mb-2">Ideas &middot; TheMealDB</p>
+    <h2 class="text-5xl font-black tracking-tighter text-white">Recipes</h2>
+</div>
+
+<form method="get" class="flex flex-wrap gap-3 mb-5 max-w-2xl">
+    <input type="search" name="q" value="{{ q }}" placeholder="Search recipes, e.g. chicken, pasta, curry..." class="field flex-1 min-w-[220px]">
+    <button class="px-8 py-3 bg-cyan-500 text-black font-bold hover:bg-cyan-400 cursor-pointer">Search</button>
+</form>
+
+{% if categories %}
+<div class="flex flex-wrap gap-2 mb-8">
+    <a href="{% url 'recipes' %}" class="px-3 py-1 text-xs border {% if featured %}bg-cyan-500 text-black border-cyan-500 font-bold{% else %}border-white/10 text-cyan-100/60 hover:text-white{% endif %}">Surprise me</a>
+    {% for c in categories %}<a href="?category={{ c|urlencode }}" class="px-3 py-1 text-xs border {% if c == category %}bg-cyan-500 text-black border-cyan-500 font-bold{% else %}border-white/10 text-cyan-100/60 hover:text-white hover:border-cyan-500/50{% endif %}">{{ c }}</a>{% endfor %}
+</div>
+{% endif %}
+
+{% if error %}
+<div class="border-l-2 border-red-500 bg-red-500/10 p-5 font-mono text-xs text-red-300">{{ error }}</div>
+{% else %}
+<div class="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-5">
+    {% for r in results %}
+    <a href="{% url 'recipe_detail' r.id %}" class="spot group bg-[#0f1d20] border border-white/5 overflow-hidden block">
+        <div class="aspect-square bg-[#13262a] overflow-hidden">
+            {% if r.thumb %}<img src="{{ r.thumb }}" alt="" loading="lazy" referrerpolicy="no-referrer" class="w-full h-full object-cover group-hover:scale-105 transition-transform duration-700">{% endif %}
+        </div>
+        <div class="p-4">
+            <h3 class="font-semibold text-white leading-snug mb-1">{{ r.name }}</h3>
+            <p class="font-mono text-[10px] uppercase tracking-widest text-cyan-100/40">{{ r.category }}{% if r.category and r.area %} &middot; {% endif %}{{ r.area }}</p>
+        </div>
+    </a>
+    {% empty %}
+    <p class="col-span-full font-mono text-xs text-cyan-100/40">No recipes found{% if q %} for &ldquo;{{ q }}&rdquo;{% endif %}. Try a simpler word like &ldquo;chicken&rdquo;.</p>
+    {% endfor %}
+</div>
+{% endif %}
+{% endblock %}

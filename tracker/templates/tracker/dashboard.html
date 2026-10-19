@@ -1,0 +1,100 @@
+{% extends "base.html" %}
+{% block title %}Dashboard{% endblock %}
+{% block content %}
+<div class="mb-10 flex flex-wrap items-end justify-between gap-4">
+    <div>
+        <p class="font-mono text-[10px] uppercase tracking-widest text-cyan-100/40 mb-2">{% if is_today %}Today's Summary{% else %}Summary for {{ day|date:"D, M j Y" }}{% endif %}</p>
+        <h2 class="text-5xl md:text-6xl font-black tracking-tighter text-white">Welcome, {{ user.username }}</h2>
+    </div>
+    <div class="flex items-center border border-white/10 rounded-sm font-mono text-xs">
+        <a href="?date={{ prev_day|date:'Y-m-d' }}" class="px-4 py-3 text-cyan-100/60 hover:text-white" title="Previous day"><span class="material-symbols-outlined" style="font-size:18px">chevron_left</span></a>
+        <span class="px-4 text-white">{% if is_today %}Today{% else %}{{ day|date:"M j" }}{% endif %}</span>
+        {% if next_day %}<a href="?date={{ next_day|date:'Y-m-d' }}" class="px-4 py-3 text-cyan-100/60 hover:text-white" title="Next day"><span class="material-symbols-outlined" style="font-size:18px">chevron_right</span></a>
+        {% else %}<span class="px-4 py-3 text-cyan-100/20"><span class="material-symbols-outlined" style="font-size:18px">chevron_right</span></span>{% endif %}
+        {% if not is_today %}<a href="{% url 'dashboard' %}" class="px-4 py-3 border-l border-white/10 text-cyan-400 hover:text-white">Today</a>{% endif %}
+    </div>
+</div>
+
+<div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 mb-8">
+    <div class="bg-[#0f1d20] p-6 flex flex-col border border-white/5 spot">
+        <span class="font-mono text-[10px] uppercase tracking-widest text-cyan-100/40">Total Calories</span>
+        <span class="text-4xl font-black tracking-tighter text-white mt-4"><span data-count="{{ total_calories|floatformat:"-1" }}">{{ total_calories|floatformat:"-1" }}</span></span>
+    </div>
+    <div class="bg-[#0f1d20] p-6 flex flex-col border border-white/5 spot">
+        <span class="font-mono text-[10px] uppercase tracking-widest text-cyan-100/40">Total Protein</span>
+        <span class="text-4xl font-black tracking-tighter text-white mt-4"><span data-count="{{ total_protein|floatformat:"-1" }}">{{ total_protein|floatformat:"-1" }}</span><span class="text-lg text-cyan-100/60 ml-1">g</span></span>
+    </div>
+    <div class="bg-[#0f1d20] p-6 flex flex-col border border-white/5 spot">
+        <span class="font-mono text-[10px] uppercase tracking-widest text-cyan-100/40">Steps</span>
+        <span class="text-4xl font-black tracking-tighter text-white mt-4">{% if activity %}{{ activity.steps }}{% else %}&mdash;{% endif %}</span>
+    </div>
+    <div class="bg-[#0f1d20] p-6 flex flex-col border border-white/5 spot">
+        <span class="font-mono text-[10px] uppercase tracking-widest text-cyan-100/40">Calories Burned</span>
+        <span class="text-4xl font-black tracking-tighter text-white mt-4">{% if activity %}{{ activity.calories_burned|floatformat:"-1" }}{% else %}&mdash;{% endif %}</span>
+    </div>
+</div>
+
+<div class="grid grid-cols-1 md:grid-cols-3 gap-4 mb-8">
+    <div class="spot bg-[#0f1d20] p-5 border border-white/5">
+        <span class="font-mono text-[10px] uppercase tracking-widest text-cyan-100/40">Logging streak</span>
+        <div class="text-3xl font-black text-white mt-2">{{ streak }}<span class="text-sm text-cyan-100/60 ml-2">day{{ streak|pluralize }}</span></div>
+        <p class="font-mono text-[10px] text-cyan-100/40 mt-2">best {{ best_streak }} day{{ best_streak|pluralize }}</p>
+    </div>
+    <div class="spot bg-[#0f1d20] p-5 border border-white/5">
+        <span class="font-mono text-[10px] uppercase tracking-widest text-cyan-100/40">Weight</span>
+        <div class="text-3xl font-black text-white mt-2">{% if latest_weight %}{{ latest_weight.weight_kg|floatformat:"-1" }}<span class="text-sm text-cyan-100/60 ml-1">kg</span>{% else %}&mdash;{% endif %}</div>
+        <p class="font-mono text-[10px] mt-2"><a href="{% url 'weight' %}" class="text-cyan-400 hover:underline">{% if latest_weight %}View trend{% else %}Log your weight{% endif %}</a></p>
+    </div>
+    <div class="spot bg-[#0f1d20] p-5 border border-white/5">
+        <div class="flex justify-between items-baseline"><span class="font-mono text-[10px] uppercase tracking-widest text-cyan-100/40">Water</span>
+            <span class="font-mono text-[10px] text-cyan-100/60">{{ water_ml }} / {{ goal.target_water_ml }} ml</span></div>
+        <div class="h-1.5 bg-white/10 rounded-full overflow-hidden mt-3 mb-3"><div class="fillbar h-full bg-sky-300 rounded-full" style="width:{{ water_pct }}%"></div></div>
+        <form method="post" action="{% url 'add_water' %}" class="flex gap-2">{% csrf_token %}
+            <input type="hidden" name="date" value="{{ day|date:'Y-m-d' }}"><input type="hidden" name="next" value="{{ request.get_full_path }}">
+            <button name="amount_ml" value="250" class="flex-1 px-2 py-1.5 border border-white/10 text-xs text-white hover:border-cyan-500/60 cursor-pointer">+250</button>
+            <button name="amount_ml" value="500" class="flex-1 px-2 py-1.5 border border-white/10 text-xs text-white hover:border-cyan-500/60 cursor-pointer">+500</button>
+            <button name="amount_ml" value="-250" class="px-2 py-1.5 border border-white/10 text-xs text-cyan-100/60 hover:border-red-400/60 cursor-pointer" title="Undo 250 ml">&minus;</button>
+        </form>
+    </div>
+</div>
+
+<div class="grid grid-cols-3 gap-4 mb-8">
+    <div class="spot bg-[#0f1d20] p-5 border border-white/5"><span class="font-mono text-[10px] uppercase tracking-widest text-cyan-100/40">Carbs</span><div class="text-2xl font-black text-white mt-2">{{ total_carbs|floatformat:"-1" }}<span class="text-sm text-cyan-100/60 ml-1">g</span></div></div>
+    <div class="spot bg-[#0f1d20] p-5 border border-white/5"><span class="font-mono text-[10px] uppercase tracking-widest text-cyan-100/40">Fat</span><div class="text-2xl font-black text-white mt-2">{{ total_fat|floatformat:"-1" }}<span class="text-sm text-cyan-100/60 ml-1">g</span></div></div>
+    <div class="spot bg-[#0f1d20] p-5 border border-white/5"><span class="font-mono text-[10px] uppercase tracking-widest text-cyan-100/40">Net calories</span><div class="text-2xl font-black text-white mt-2">{{ net_calories|floatformat:"-1" }}</div></div>
+</div>
+
+<div class="spot bg-[#0f1d20] border border-white/5 p-6 mb-8">
+    <div class="flex justify-between items-center mb-6"><p class="font-mono text-[10px] uppercase tracking-widest text-cyan-100/40">Daily goals</p><a href="{% url 'goals' %}" class="font-mono text-[10px] uppercase tracking-widest text-cyan-100/60 hover:text-cyan-400">Edit goals</a></div>
+    <div class="space-y-5">
+        <div><div class="flex justify-between font-mono text-[10px] uppercase tracking-widest text-cyan-100/60 mb-2"><span>Calories</span><span>{{ total_calories|floatformat:"-1" }} / {{ goal.target_calories|floatformat:0 }}</span></div><div class="h-1.5 bg-white/10 rounded-full overflow-hidden"><div class="fillbar h-full bg-cyan-500 rounded-full" style="width:{{ cal_pct }}%"></div></div></div>
+        <div><div class="flex justify-between font-mono text-[10px] uppercase tracking-widest text-cyan-100/60 mb-2"><span>Protein</span><span>{{ total_protein|floatformat:"-1" }}g / {{ goal.target_protein|floatformat:0 }}g</span></div><div class="h-1.5 bg-white/10 rounded-full overflow-hidden"><div class="fillbar h-full bg-cyan-400 rounded-full" style="width:{{ protein_pct }}%"></div></div></div>
+        <div><div class="flex justify-between font-mono text-[10px] uppercase tracking-widest text-cyan-100/60 mb-2"><span>Steps</span><span>{% if activity %}{{ activity.steps }}{% else %}0{% endif %} / {{ goal.target_steps }}</span></div><div class="h-1.5 bg-white/10 rounded-full overflow-hidden"><div class="fillbar h-full bg-teal-400 rounded-full" style="width:{{ steps_pct }}%"></div></div></div>
+    </div>
+</div>
+
+{% if not activity %}
+<div class="bg-[#13262a] border-l-2 border-cyan-500 p-6 mb-8 flex items-center justify-between">
+    <span class="font-mono text-xs text-cyan-100/60">{% if is_today %}No activity logged today.{% else %}No activity logged this day.{% endif %}</span>
+    <a href="{% url 'add_activity' %}" class="px-6 py-2 bg-cyan-500 text-black font-bold text-sm hover:bg-cyan-400 transition-all active:scale-95">Log Activity</a>
+</div>
+{% endif %}
+
+<div class="bg-[#0f1d20] border border-white/5 rounded-sm overflow-hidden shadow-2xl">
+    <div class="flex items-center justify-between px-8 py-6 border-b border-white/5">
+        <h3 class="text-xl font-bold tracking-tight text-white">{% if is_today %}Today's Meals{% else %}Meals on {{ day|date:"M j" }}{% endif %}</h3>
+        <a href="{% url 'add_meal' %}" class="px-6 py-2 bg-cyan-500 text-black font-bold text-sm hover:bg-cyan-400 transition-all active:scale-95">Add Meal</a>
+    </div>
+    {% for meal in meals %}
+    <div style="--i:{{ forloop.counter0 }}" class="row-in flex items-center justify-between px-8 py-4 border-b border-white/5 hover:bg-white/5">
+        <div>
+            <p class="text-white font-medium flex items-center gap-3">{% include "partials/food_thumb.html" with food=meal.food size=36 %}{{ meal.food.name }}</p>
+            <p class="font-mono text-[10px] uppercase tracking-widest text-cyan-100/40 mt-1">{{ meal.meal_type }} &middot; {{ meal.quantity_grams }}g</p>
+        </div>
+        <span class="font-mono text-sm text-white">{{ meal.total_calories|floatformat:"-1" }} cal</span>
+    </div>
+    {% empty %}
+    <p class="px-8 py-8 font-mono text-xs text-cyan-100/40">{% if is_today %}No meals logged today.{% else %}No meals logged this day.{% endif %}</p>
+    {% endfor %}
+</div>
+{% endblock %}

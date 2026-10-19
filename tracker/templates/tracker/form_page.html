@@ -1,0 +1,242 @@
+{% extends "base.html" %}
+{% block title %}{{ title }}{% endblock %}
+{% block crumb %}{{ crumb }}{% endblock %}
+{% block content %}
+<div class="mb-10">
+    <p class="font-mono text-[10px] uppercase tracking-widest text-cyan-100/40 mb-2">{{ eyebrow }}</p>
+    <h2 class="text-5xl font-black tracking-tighter text-white">{{ title }}</h2>
+</div>
+
+{% if lookup %}
+<div class="bg-[#0f1d20] p-6 border border-white/10 shadow-2xl rounded-sm max-w-2xl mb-6">
+    <p class="font-mono text-[10px] uppercase tracking-widest text-cyan-100/40 mb-3">Find a food online (Open Food Facts)</p>
+    <div class="flex gap-3 mb-3">
+        <input id="lk-q" type="search" placeholder="Search by name or paste a barcode..." class="field" autocomplete="off">
+        <button type="button" id="lk-go" class="px-6 bg-cyan-500 text-black font-bold text-sm hover:bg-cyan-400 cursor-pointer shrink-0">Search</button>
+    </div>
+    <p id="lk-status" class="font-mono text-[11px] text-cyan-100/40"></p>
+    <ul id="lk-results" class="mt-2 divide-y divide-white/5"></ul>
+</div>
+<script>
+(function () {
+    const q = document.getElementById('lk-q'), go = document.getElementById('lk-go'), out = document.getElementById('lk-results'), st = document.getElementById('lk-status');
+    const set = (id, v) => { const el = document.getElementById(id); if (el) el.value = v; };
+    async function run() {
+        const term = q.value.trim(); if (term.length < 2) { st.textContent = 'Type at least 2 characters.'; return; }
+        st.textContent = 'Searching...'; out.innerHTML = ''; go.disabled = true;
+        const isCode = /^\d{8,14}$/.test(term);
+        try {
+            const r = await fetch('{% url "food_lookup" %}?' + (isCode ? 'barcode=' : 'q=') + encodeURIComponent(term), { headers: { 'Accept': 'application/json' } });
+            const data = await r.json();
+            st.textContent = data.results.length ? 'Tap a result to fill the form. Values are per 100 g.' : 'No results (or the service is unreachable). You can still enter values by hand.';
+            data.results.forEach(f => {
+                const li = document.createElement('li'); li.className = 'py-3';
+                const b = document.createElement('button'); b.type = 'button';
+                b.className = 'w-full text-left flex items-center gap-3 hover:text-cyan-400 text-white cursor-pointer';
+                const n = document.createElement('span'); n.textContent = f.name; n.className = 'text-sm flex-1 text-left';
+                const im = document.createElement('span'); im.className = 'ft'; im.style.cssText = 'width:32px;height:32px'; if (f.image && /^https:\/\//.test(f.image)) { const x = document.createElement('img'); x.src = f.image; x.alt = ''; x.referrerPolicy = 'no-referrer'; x.onerror = () => x.remove(); im.appendChild(x); } else { im.textContent = '\u{1F37D}\uFE0F'; im.style.fontSize = '18px'; }
+                const m = document.createElement('span'); m.className = 'font-mono text-[11px] text-cyan-100/60 shrink-0';
+                m.textContent = f.calories + ' cal \u00b7 P' + f.protein + ' C' + f.carbs + ' F' + f.fat + (f.source ? ' \u00b7 ' + f.source : '');
+                b.append(im, n, m);
+                b.onclick = () => { set('id_name', f.name); set('id_calories', f.calories); set('id_protein', f.protein); set('id_carbs', f.carbs); set('id_fat', f.fat); set('id_barcode', f.barcode); set('id_image_url', f.image || ''); window.scrollTo({ top: document.querySelector('form[method=post]').offsetTop - 80, behavior: 'smooth' }); };
+                li.appendChild(b); out.appendChild(li);
+            });
+        } catch (e) { st.textContent = 'Lookup failed. Check your connection.'; }
+        go.disabled = false;
+    }
+    go.onclick = run; q.addEventListener('keydown', e => { if (e.key === 'Enter') { e.preventDefault(); run(); } });
+})();
+</script>
+{% endif %}
+
+<form method="post" class="bg-[#0f1d20] p-8 border border-white/10 shadow-2xl rounded-sm max-w-2xl">
+    {% csrf_token %}
+    {% if next %}<input type="hidden" name="next" value="{{ next }}">{% endif %}
+    {% if hint %}
+    <div class="mb-6 border-l-2 border-cyan-500 bg-[#0f1d20] px-4 py-3 font-mono text-xs text-cyan-100/60">
+        {{ hint }} <a href="{{ hint_url }}" class="text-cyan-400 underline">{{ hint_label }}</a>
+    </div>
+    {% endif %}
+    {% if quick_foods %}
+    <div class="mb-6">
+        <p class="lbl">Quick pick &mdash; favorites and recent</p>
+        <div class="flex flex-wrap gap-2">
+            {% for q in quick_foods %}<a href="?food={{ q.food.id }}" class="px-3 py-1 border border-white/10 text-xs text-white hover:border-cyan-500/60 hover:text-cyan-400 transition-colors">{% if q.favorite %}&#9733; {% endif %}{{ q.food.name }}</a>{% endfor %}
+        </div>
+    </div>
+    {% endif %}
+    {% if form.non_field_errors %}
+    <div class="mb-6 border-l-2 border-red-500 bg-red-500/10 px-4 py-3 font-mono text-xs text-red-400">{{ form.non_field_errors.0 }}</div>
+    {% endif %}
+    {% for field in form %}
+    <div class="mb-6">
+        <label class="lbl" for="{{ field.id_for_label }}">{{ field.label }}</label>
+        {{ field }}
+        {% if field.errors %}<p class="mt-2 font-mono text-xs text-red-400">{{ field.errors.0 }}</p>{% endif %}
+    </div>
+    {% endfor %}
+    <div class="flex gap-4 mt-8">
+        <button type="submit" class="px-12 py-4 bg-cyan-500 text-black font-bold hover:bg-cyan-400 transition-all active:scale-95 cursor-pointer">{{ submit }}</button>
+        <a href="{{ cancel_url }}" class="px-8 py-4 border border-white/10 text-white font-bold hover:border-white/30 transition-all">Cancel</a>
+    </div>
+</form>
+{% if food_combo %}
+{{ food_data|json_script:"food-data" }}
+<style>
+    .combo { position:relative; }
+    .combo-list { position:absolute; left:0; right:0; top:calc(100% + 4px); z-index:30; max-height:340px; overflow-y:auto; background:#13262a;
+                  border:1px solid rgba(6,182,212,.4); box-shadow:0 18px 40px rgba(0,0,0,.5); border-radius:2px; display:none; }
+    .combo.open .combo-list { display:block; animation:fade-in .2s ease both; }
+    .combo-item { padding:.55rem 1rem; display:flex; align-items:center; gap:.75rem; font-family:'JetBrains Mono',monospace; font-size:.8rem; color:#e6f4f5; cursor:pointer; width:100%; text-align:left; }
+    .combo-item.active, .combo-item:hover { background:rgba(6,182,212,.18); color:#fff; }
+    .combo-item mark { background:none; color:#22d3ee; font-weight:700; }
+    .combo-item .meta { margin-left:auto; color:rgba(207,250,254,.5); font-size:.7rem; white-space:nowrap; }
+    .combo-head { padding:.5rem 1rem; font-family:'JetBrains Mono',monospace; font-size:.6rem; letter-spacing:.12em; text-transform:uppercase; color:rgba(207,250,254,.4); border-top:1px solid rgba(255,255,255,.08); }
+    .combo-new { color:#22d3ee; border-top:1px solid rgba(255,255,255,.08); }
+    .combo-empty { padding:.65rem 1rem; font-family:'JetBrains Mono',monospace; font-size:.75rem; color:rgba(207,250,254,.4); }
+    .combo-add { margin-left:.5rem; font-size:.65rem; color:#06b6d4; border:1px solid rgba(6,182,212,.5); padding:1px 8px; }
+    .food-preview { display:none; gap:1rem; align-items:center; margin-top:.9rem; padding:.9rem 1rem; background:#0a1214; border:1px solid rgba(6,182,212,.25); border-radius:4px; }
+    .food-preview.show { display:flex; animation:fade-in .35s ease both; }
+    .food-preview .n { color:#fff; font-weight:600; }
+    .food-preview .m { font-family:'JetBrains Mono',monospace; font-size:.7rem; color:rgba(207,250,254,.55); margin-top:.15rem; }
+    .food-preview .t { font-family:'JetBrains Mono',monospace; font-size:.8rem; color:#22d3ee; margin-top:.35rem; }
+</style>
+<script>
+(function () {
+    const sel = document.getElementById('id_food');
+    if (!sel) return;
+    const foods = JSON.parse(document.getElementById('food-data').textContent);
+    const byId = Object.fromEntries(foods.map(f => [String(f.id), f]));
+    const newUrl = '{{ new_food_url }}', back = location.pathname, lookupUrl = '{% url "food_lookup" %}';
+    const qty = document.getElementById('id_quantity_grams');
+
+    sel.style.display = 'none'; sel.removeAttribute('required');
+    const wrap = document.createElement('div'); wrap.className = 'combo';
+    const input = document.createElement('input');
+    input.type = 'text'; input.className = 'field'; input.autocomplete = 'off'; input.id = 'food-combo';
+    input.placeholder = 'Type a food name: your foods and online suggestions appear...';
+    input.setAttribute('role', 'combobox'); input.setAttribute('aria-expanded', 'false'); input.setAttribute('aria-controls', 'food-list');
+    const list = document.createElement('div'); list.className = 'combo-list'; list.id = 'food-list'; list.setAttribute('role', 'listbox');
+    const preview = document.createElement('div'); preview.className = 'food-preview'; preview.setAttribute('aria-live', 'polite');
+    wrap.append(input, list); sel.parentNode.insertBefore(wrap, sel.nextSibling); wrap.after(preview);
+    const label = document.querySelector('label[for="id_food"]'); if (label) label.setAttribute('for', 'food-combo');
+
+    // ---------- helpers
+    const esc = s => String(s).replace(/[&<>"]/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]));
+    const num = n => Math.round(n * 10) / 10;
+    function thumb(f, size) {
+        const s = document.createElement('span'); s.className = 'ft'; s.style.cssText = 'width:' + size + 'px;height:' + size + 'px;font-size:' + Math.round(size * .55) + 'px';
+        const e = document.createElement('b'); e.className = 'ft-e'; e.textContent = f.emoji || '\u{1F37D}\uFE0F';
+        if (f.image && /^https:\/\//.test(f.image)) {
+            const i = document.createElement('img'); i.alt = ''; i.loading = 'lazy'; i.referrerPolicy = 'no-referrer'; i.src = f.image;
+            e.style.display = 'none'; i.onerror = () => { i.style.display = 'none'; e.style.display = 'flex'; };
+            s.append(i, e);
+        } else s.append(e);
+        return s;
+    }
+    function emojiFor(name) {   // light client-side guess for online results that have no photo
+        const k = [['chicken','\u{1F357}'],['egg','\u{1F95A}'],['rice','\u{1F35A}'],['bread','\u{1F35E}'],['milk','\u{1F95B}'],['cheese','\u{1F9C0}'],['apple','\u{1F34E}'],['banana','\u{1F34C}'],['pizza','\u{1F355}'],['chocolate','\u{1F36B}'],['fish','\u{1F41F}'],['beef','\u{1F969}'],['pasta','\u{1F35D}'],['oat','\u{1F963}'],['juice','\u{1F9C3}'],['yogurt','\u{1F95B}']];
+        const n = name.toLowerCase(); const m = k.find(p => n.includes(p[0])); return m ? m[1] : '\u{1F37D}\uFE0F';
+    }
+    function selected() { return byId[sel.value]; }
+
+    // ---------- live preview (photo + nutrition for the chosen quantity)
+    function showPreview() {
+        const f = selected();
+        if (!f) { preview.classList.remove('show'); preview.innerHTML = ''; return; }
+        const g = parseFloat(qty && qty.value) || 100;
+        preview.innerHTML = '';
+        const body = document.createElement('div');
+        body.innerHTML = '<div class="n">' + esc(f.name) + '</div><div class="m">per 100 g: ' + num(f.calories) + ' cal \u00b7 P ' + num(f.protein) + ' \u00b7 C ' + num(f.carbs) + ' \u00b7 F ' + num(f.fat) + '</div>'
+            + '<div class="t">' + (qty && qty.value ? num(g) + ' g = ' : 'per 100 g = ') + num(f.calories * g / 100) + ' cal \u00b7 ' + num(f.protein * g / 100) + ' g protein</div>';
+        preview.append(thumb(f, 64), body); preview.classList.add('show');
+    }
+    if (qty) qty.addEventListener('input', showPreview);
+
+    // ---------- suggestions
+    let rows = [], active = -1, webTimer = null, webSeq = 0;
+    function localMatches(q) {
+        if (!q) return foods.slice(0, 12);
+        const starts = foods.filter(f => f.name.toLowerCase().startsWith(q)), has = foods.filter(f => !f.name.toLowerCase().startsWith(q) && f.name.toLowerCase().includes(q));
+        return starts.concat(has).slice(0, 12);
+    }
+    function addRow(el, payload) { list.appendChild(el); rows.push({ el, ...payload }); }
+    function render(webResults) {
+        const typed = input.value.trim();
+        const q = (sel.value && input.value === (selected() || {}).name ? '' : typed).toLowerCase();
+        list.innerHTML = ''; rows = []; active = -1;
+        const matches = localMatches(q);
+        matches.forEach(f => {
+            const b = document.createElement('button'); b.type = 'button'; b.className = 'combo-item'; b.setAttribute('role', 'option');
+            const nm = document.createElement('span'); const i = q ? f.name.toLowerCase().indexOf(q) : -1;
+            nm.innerHTML = i >= 0 ? esc(f.name.slice(0, i)) + '<mark>' + esc(f.name.slice(i, i + q.length)) + '</mark>' + esc(f.name.slice(i + q.length)) : esc(f.name);
+            const meta = document.createElement('span'); meta.className = 'meta'; meta.textContent = num(f.calories) + ' cal';
+            b.append(thumb(f, 32), nm, meta); b.onmousedown = e => { e.preventDefault(); choose(f); };
+            addRow(b, { food: f });
+        });
+        if (!matches.length) { const d = document.createElement('div'); d.className = 'combo-empty'; d.textContent = foods.length ? 'No food of yours matches' : 'No foods yet'; list.appendChild(d); }
+        if (webResults && webResults.length) {
+            const h = document.createElement('div'); h.className = 'combo-head'; h.textContent = 'Suggestions from the web'; list.appendChild(h);
+            webResults.forEach(w => {
+                const a = document.createElement('a'); a.className = 'combo-item';
+                const p = new URLSearchParams({ name: w.name, calories: w.calories, protein: w.protein, carbs: w.carbs, fat: w.fat, barcode: w.barcode || '', image_url: w.image || '', next: back });
+                a.href = newUrl + '?' + p.toString();
+                const nm = document.createElement('span'); nm.textContent = w.name;
+                const meta = document.createElement('span'); meta.className = 'meta'; meta.textContent = num(w.calories) + ' cal' + (w.source ? ' \u00b7 ' + w.source : '');
+                const add = document.createElement('span'); add.className = 'combo-add'; add.textContent = 'Add';
+                a.append(thumb({ image: w.image, emoji: emojiFor(w.name) }, 32), nm, meta, add);
+                addRow(a, { link: true });
+            });
+        } else if (webResults === null) {
+            const d = document.createElement('div'); d.className = 'combo-empty'; d.textContent = 'Searching the web...'; list.appendChild(d);
+        }
+        if (typed) {
+            const exact = foods.some(f => f.name.toLowerCase() === typed.toLowerCase());
+            if (!exact) {
+                const a = document.createElement('a'); a.className = 'combo-item combo-new';
+                a.href = newUrl + '?name=' + encodeURIComponent(typed) + '&next=' + encodeURIComponent(back);
+                a.textContent = '+ Add \u201c' + typed + '\u201d as a new food'; addRow(a, { link: true });
+            }
+        } else {
+            const a = document.createElement('a'); a.className = 'combo-item combo-new'; a.href = newUrl + '?next=' + encodeURIComponent(back);
+            a.textContent = '+ Add a new food'; addRow(a, { link: true });
+        }
+    }
+    function searchWeb(q) {
+        clearTimeout(webTimer);
+        if (q.length < 3 || localMatches(q.toLowerCase()).length >= 6) return;      // plenty of local matches already
+        const seq = ++webSeq;
+        webTimer = setTimeout(async () => {
+            render(null);
+            try {
+                const r = await fetch(lookupUrl + '?q=' + encodeURIComponent(q), { headers: { Accept: 'application/json' } });
+                const data = await r.json();
+                if (seq === webSeq && input.value.trim() === q) render(data.results.slice(0, 5));
+            } catch (e) { if (seq === webSeq) render([]); }
+        }, 450);
+    }
+    function open() { render(); wrap.classList.add('open'); input.setAttribute('aria-expanded', 'true'); }
+    function close() { wrap.classList.remove('open'); input.setAttribute('aria-expanded', 'false'); }
+    function choose(f) { sel.value = String(f.id); input.value = f.name; close(); showPreview(); sel.dispatchEvent(new Event('change')); if (qty && !qty.value) qty.focus(); }
+    function mark(i) { rows.forEach((x, k) => x.el.classList.toggle('active', k === i)); active = i; if (rows[i]) rows[i].el.scrollIntoView({ block: 'nearest' }); }
+
+    input.addEventListener('focus', () => { input.select(); open(); });
+    input.addEventListener('input', () => { sel.value = ''; showPreview(); open(); searchWeb(input.value.trim()); });
+    input.addEventListener('keydown', e => {
+        if (e.key === 'ArrowDown') { e.preventDefault(); if (!wrap.classList.contains('open')) open(); mark(Math.min(active + 1, rows.length - 1)); }
+        else if (e.key === 'ArrowUp') { e.preventDefault(); mark(Math.max(active - 1, 0)); }
+        else if (e.key === 'Enter') {
+            const it = rows[active] || (rows.length && !rows[0].link && localMatches(input.value.trim().toLowerCase()).length === 1 ? rows[0] : null);
+            if (wrap.classList.contains('open') && it) { e.preventDefault(); it.link ? (location.href = it.el.href) : choose(it.food); }
+        } else if (e.key === 'Escape') { close(); const f = selected(); input.value = f ? f.name : ''; }
+    });
+    input.addEventListener('blur', () => setTimeout(() => {
+        close();
+        if (!sel.value) { const m = foods.find(f => f.name.toLowerCase() === input.value.trim().toLowerCase()); if (m) choose(m); }
+    }, 150));
+    document.addEventListener('click', e => { if (!wrap.contains(e.target)) close(); });
+    const initial = selected(); if (initial) { input.value = initial.name; showPreview(); }
+})();
+</script>
+{% endif %}
+{% endblock %}

@@ -1,0 +1,20 @@
+{% extends "base.html" %}
+{% block title %}{{ title }}{% endblock %}
+{% block crumb %}{{ crumb }}{% endblock %}
+{% block content %}
+<div class="max-w-xl">
+    <p class="font-mono text-[10px] uppercase tracking-widest text-red-400 mb-2">Confirm</p>
+    <h2 class="text-5xl font-black tracking-tighter text-white mb-8">{{ title }}</h2>
+    <div class="bg-[#0f1d20] border border-white/10 border-l-2 border-l-red-500 p-8 shadow-2xl">
+        <p class="text-cyan-100/70 mb-2">You are about to delete:</p>
+        <p class="text-white font-semibold text-lg mb-4">{{ object_label }}</p>
+        {% if warning %}<p class="mb-4 font-mono text-xs text-red-400">{{ warning }}</p>{% endif %}
+        <p class="font-mono text-xs text-cyan-100/40 mb-8">This cannot be undone.</p>
+        <form method="post" class="flex gap-4">
+            {% csrf_token %}
+            <button type="submit" class="px-8 py-3 bg-red-500 hover:bg-red-400 text-white font-bold transition-all active:scale-95 cursor-pointer">Delete</button>
+            <a href="{{ cancel_url }}" class="px-8 py-3 border border-white/10 text-white font-bold hover:border-white/30 transition-all">Cancel</a>
+        </form>
+    </div>
+</div>
+{% endblock %}

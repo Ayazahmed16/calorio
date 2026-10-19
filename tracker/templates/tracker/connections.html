@@ -1,0 +1,110 @@
+{% extends "base.html" %}
+{% block title %}Connections{% endblock %}
+{% block crumb %}Connections{% endblock %}
+{% block content %}
+<div class="mb-10">
+    <p class="font-mono text-[10px] uppercase tracking-widest text-cyan-100/40 mb-2">Integrations</p>
+    <h2 class="text-5xl font-black tracking-tighter text-white">Connections</h2>
+</div>
+
+<div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
+
+    <!-- Fitbit -->
+    <div class="spot bg-[#0f1d20] border border-white/5 p-6">
+        <div class="flex items-start justify-between gap-4 mb-3">
+            <h3 class="text-lg font-bold text-white">Fitbit</h3>
+            <span class="font-mono text-[10px] uppercase tracking-widest px-2 py-1 border {% if conn %}border-cyan-500/50 text-cyan-400{% else %}border-white/10 text-cyan-100/40{% endif %}">{% if conn %}Connected{% else %}Not connected{% endif %}</span>
+        </div>
+        <p class="text-sm text-cyan-100/60 leading-relaxed mb-5">Import steps, calories burned and weight from your Fitbit automatically instead of typing them.</p>
+        {% if conn %}
+            <p class="font-mono text-[11px] text-cyan-100/50 mb-4">Last synced: {% if conn.last_synced %}{{ conn.last_synced|timesince }} ago{% else %}never{% endif %}</p>
+            <div class="flex flex-wrap gap-3">
+                <form method="post" action="{% url 'fitbit_sync' %}">{% csrf_token %}<input type="hidden" name="days" value="7">
+                    <button class="px-5 py-2 bg-cyan-500 text-black font-bold text-sm hover:bg-cyan-400 cursor-pointer">Sync last 7 days</button></form>
+                <form method="post" action="{% url 'fitbit_sync' %}">{% csrf_token %}<input type="hidden" name="days" value="30">
+                    <button class="px-5 py-2 border border-white/15 text-sm text-white hover:bg-white/5 cursor-pointer">Sync 30 days</button></form>
+                <form method="post" action="{% url 'fitbit_disconnect' %}">{% csrf_token %}
+                    <button class="px-5 py-2 border border-white/15 text-sm text-cyan-100/60 hover:text-red-400 cursor-pointer">Disconnect</button></form>
+            </div>
+        {% elif fitbit_ready %}
+            <a href="{% url 'fitbit_connect' %}" class="inline-block px-6 py-3 bg-cyan-500 text-black font-bold text-sm hover:bg-cyan-400">Connect Fitbit</a>
+        {% else %}
+            <div class="border-l-2 border-cyan-500/60 bg-[#0a1214] p-4 font-mono text-[11px] leading-relaxed text-cyan-100/60">
+                Not set up yet. Create a free app at <span class="text-cyan-400">dev.fitbit.com/apps</span>, set its redirect URL to<br>
+                <span class="text-white break-all">{{ fitbit_redirect }}</span><br>
+                then set <span class="text-white">FITBIT_CLIENT_ID</span> and <span class="text-white">FITBIT_CLIENT_SECRET</span> and restart the server.
+            </div>
+        {% endif %}
+    </div>
+
+    <!-- Telegram -->
+    <div class="spot bg-[#0f1d20] border border-white/5 p-6">
+        <div class="flex items-start justify-between gap-4 mb-3">
+            <h3 class="text-lg font-bold text-white">Telegram reminders</h3>
+            <span class="font-mono text-[10px] uppercase tracking-widest px-2 py-1 border {% if us.telegram_chat_id %}border-cyan-500/50 text-cyan-400{% else %}border-white/10 text-cyan-100/40{% endif %}">{% if us.telegram_chat_id %}Connected{% else %}Not connected{% endif %}</span>
+        </div>
+        <p class="text-sm text-cyan-100/60 leading-relaxed mb-5">Get meal reminders with your progress, and message the bot <span class="font-mono text-white">/today</span> or <span class="font-mono text-white">/water 250</span> from your phone.</p>
+        {% if not telegram_ready %}
+            <div class="border-l-2 border-cyan-500/60 bg-[#0a1214] p-4 font-mono text-[11px] leading-relaxed text-cyan-100/60">
+                Not set up yet. Create a bot with <span class="text-cyan-400">@BotFather</span>, then set <span class="text-white">TELEGRAM_BOT_TOKEN</span> and <span class="text-white">TELEGRAM_BOT_USERNAME</span>.
+                Run <span class="text-white">python manage.py telegram_poll</span> so the bot can answer.
+            </div>
+        {% elif us.telegram_chat_id %}
+            <div class="flex flex-wrap gap-3">
+                <form method="post" action="{% url 'telegram_test' %}">{% csrf_token %}<button class="px-5 py-2 border border-white/15 text-sm text-white hover:bg-white/5 cursor-pointer">Send test message</button></form>
+                <form method="post" action="{% url 'telegram_disconnect' %}">{% csrf_token %}<button class="px-5 py-2 border border-white/15 text-sm text-cyan-100/60 hover:text-red-400 cursor-pointer">Disconnect</button></form>
+            </div>
+        {% elif tg_link %}
+            <p class="font-mono text-[11px] text-cyan-100/60 mb-3">1. Open this link and press Start:</p>
+            <a href="{{ tg_link }}" target="_blank" rel="noopener" class="inline-block px-6 py-3 bg-cyan-500 text-black font-bold text-sm hover:bg-cyan-400 mb-3">Open @{{ tg_username }}</a>
+            <p class="font-mono text-[11px] text-cyan-100/40">2. Come back and refresh this page. (Needs <span class="text-white">python manage.py telegram_poll</span> running.)</p>
+        {% else %}
+            <form method="post" action="{% url 'telegram_connect' %}">{% csrf_token %}<button class="px-6 py-3 bg-cyan-500 text-black font-bold text-sm hover:bg-cyan-400 cursor-pointer">Connect Telegram</button></form>
+        {% endif %}
+    </div>
+
+    <!-- Email -->
+    <div class="spot bg-[#0f1d20] border border-white/5 p-6">
+        <div class="flex items-start justify-between gap-4 mb-3">
+            <h3 class="text-lg font-bold text-white">Email</h3>
+            <span class="font-mono text-[10px] uppercase tracking-widest px-2 py-1 border {% if smtp_ready %}border-cyan-500/50 text-cyan-400{% else %}border-white/10 text-cyan-100/40{% endif %}">{% if smtp_ready %}SMTP on{% else %}Console only{% endif %}</span>
+        </div>
+        <p class="text-sm text-cyan-100/60 leading-relaxed mb-5">Used for password resets and your weekly summary.</p>
+        <form method="post" action="{% url 'update_email' %}" class="flex gap-3 mb-4">{% csrf_token %}
+            <input type="email" name="email" value="{{ user.email }}" placeholder="you@example.com" class="field">
+            <button class="px-6 bg-cyan-500 text-black font-bold text-sm hover:bg-cyan-400 cursor-pointer shrink-0">Save</button>
+        </form>
+        <form method="post" action="{% url 'send_test_email' %}">{% csrf_token %}<button class="px-5 py-2 border border-white/15 text-sm text-white hover:bg-white/5 cursor-pointer">Send test email</button></form>
+        {% if not smtp_ready %}
+        <p class="mt-4 font-mono text-[11px] leading-relaxed text-cyan-100/40">No SMTP server is configured, so emails print in the terminal. Set <span class="text-white">EMAIL_HOST</span>, <span class="text-white">EMAIL_HOST_USER</span> and <span class="text-white">EMAIL_HOST_PASSWORD</span> (Gmail needs an app password) for real delivery.</p>
+        {% endif %}
+    </div>
+
+    <!-- Notification preferences -->
+    <form method="post" action="{% url 'update_notifications' %}" class="spot bg-[#0f1d20] border border-white/5 p-6">
+        {% csrf_token %}
+        <h3 class="text-lg font-bold text-white mb-4">Notifications</h3>
+        <label class="flex items-center gap-3 mb-4 cursor-pointer"><input type="checkbox" name="weekly_email" {% if us.weekly_email %}checked{% endif %} class="w-4 h-4 accent-cyan-500">
+            <span class="text-sm text-white">Weekly summary email</span></label>
+        <label class="flex items-center gap-3 mb-4 {% if not us.telegram_chat_id %}opacity-50{% endif %} cursor-pointer"><input type="checkbox" name="reminders_enabled" {% if us.reminders_enabled %}checked{% endif %} class="w-4 h-4 accent-cyan-500">
+            <span class="text-sm text-white">Telegram meal reminders{% if not us.telegram_chat_id %} <span class="font-mono text-[10px] text-cyan-100/40">(connect Telegram first)</span>{% endif %}</span></label>
+        <label class="lbl" for="rt">Reminder times (24-hour, comma separated)</label>
+        <input id="rt" name="reminder_times" value="{{ us.reminder_times }}" class="field mb-5">
+        <button class="px-6 py-3 bg-cyan-500 text-black font-bold text-sm hover:bg-cyan-400 cursor-pointer">Save notifications</button>
+        <p class="mt-4 font-mono text-[10px] leading-relaxed text-cyan-100/40">Reminders go out from <span class="text-white">python manage.py send_reminders</span>, which should run every 5-10 minutes. Times use the server time zone.</p>
+    </form>
+
+    <!-- Food data sources -->
+    <div class="spot bg-[#0f1d20] border border-white/5 p-6 lg:col-span-2">
+        <h3 class="text-lg font-bold text-white mb-4">Food and recipe data</h3>
+        <ul class="space-y-3 text-sm">
+            <li class="flex items-center justify-between gap-4"><span class="text-white">USDA FoodData Central <span class="text-cyan-100/50">&mdash; generic foods</span></span>
+                <span class="font-mono text-[10px] uppercase tracking-widest text-cyan-400">{% if usda_custom_key %}Your API key{% else %}Shared demo key (rate limited){% endif %}</span></li>
+            <li class="flex items-center justify-between gap-4"><span class="text-white">Open Food Facts <span class="text-cyan-100/50">&mdash; packaged products, barcodes</span></span><span class="font-mono text-[10px] uppercase tracking-widest text-cyan-400">Active</span></li>
+            <li class="flex items-center justify-between gap-4"><span class="text-white">TheMealDB <span class="text-cyan-100/50">&mdash; recipes</span></span><span class="font-mono text-[10px] uppercase tracking-widest text-cyan-400">Active</span></li>
+            <li class="flex items-center justify-between gap-4"><span class="text-white">Wikipedia <span class="text-cyan-100/50">&mdash; food photos</span></span><span class="font-mono text-[10px] uppercase tracking-widest text-cyan-400">Active</span></li>
+        </ul>
+        {% if not usda_custom_key %}<p class="mt-4 font-mono text-[10px] text-cyan-100/40">For reliable USDA results, get a free key at fdc.nal.usda.gov/api-key-signup and set <span class="text-white">USDA_API_KEY</span>.</p>{% endif %}
+    </div>
+</div>
+{% endblock %}

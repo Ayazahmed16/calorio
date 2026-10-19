@@ -1,0 +1,85 @@
+{% extends "base.html" %}
+{% block title %}Analytics{% endblock %}
+{% block crumb %}Analytics{% endblock %}
+{% block content %}
+<div class="flex items-end justify-between mb-10 gap-4 flex-wrap">
+    <div>
+        <p class="font-mono text-[10px] uppercase tracking-widest text-cyan-100/40 mb-2">{{ range_start }} &rarr; {{ range_end }}</p>
+        <h2 class="text-5xl font-black tracking-tighter text-white">Analytics</h2>
+    </div>
+    <div class="flex border border-white/10 rounded-sm overflow-hidden font-mono text-xs">
+        <a href="?days=7" class="px-5 py-3 {% if days == 7 %}bg-cyan-500 text-black font-bold{% else %}text-cyan-100/60 hover:text-white{% endif %}">7 days</a>
+        <a href="?days=30" class="px-5 py-3 {% if days == 30 %}bg-cyan-500 text-black font-bold{% else %}text-cyan-100/60 hover:text-white{% endif %}">30 days</a>
+        <a href="?days=90" class="px-5 py-3 {% if days == 90 %}bg-cyan-500 text-black font-bold{% else %}text-cyan-100/60 hover:text-white{% endif %}">90 days</a>
+    </div>
+</div>
+
+<div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 mb-8">
+    <div class="spot bg-[#0f1d20] p-6 border border-white/5">
+        <span class="font-mono text-[10px] uppercase tracking-widest text-cyan-100/40">Avg calories / day</span>
+        <div class="text-4xl font-black tracking-tighter text-white mt-4">{{ avg_calories }}</div>
+        <p class="font-mono text-[10px] text-cyan-100/40 mt-2">over {{ days_logged }} logged day{{ days_logged|pluralize }}</p>
+    </div>
+    <div class="spot bg-[#0f1d20] p-6 border border-white/5">
+        <span class="font-mono text-[10px] uppercase tracking-widest text-cyan-100/40">Avg protein / day</span>
+        <div class="text-4xl font-black tracking-tighter text-white mt-4">{{ avg_protein }}<span class="text-lg text-cyan-100/60 ml-1">g</span></div>
+        <p class="font-mono text-[10px] text-cyan-100/40 mt-2">goal {{ goal.target_protein|floatformat:0 }}g</p>
+    </div>
+    <div class="spot bg-[#0f1d20] p-6 border border-white/5">
+        <span class="font-mono text-[10px] uppercase tracking-widest text-cyan-100/40">Avg steps / day</span>
+        <div class="text-4xl font-black tracking-tighter text-white mt-4">{{ avg_steps }}</div>
+        <p class="font-mono text-[10px] text-cyan-100/40 mt-2">best day {{ best_steps }}</p>
+    </div>
+    <div class="spot bg-[#0f1d20] p-6 border border-white/5">
+        <span class="font-mono text-[10px] uppercase tracking-widest text-cyan-100/40">Days on target</span>
+        <div class="text-4xl font-black tracking-tighter text-white mt-4">{{ on_target }}<span class="text-lg text-cyan-100/60 ml-1">/ {{ days_logged }}</span></div>
+        <p class="font-mono text-[10px] text-cyan-100/40 mt-2">at or under {{ goal.target_calories|floatformat:0 }} cal</p>
+    </div>
+</div>
+
+<div class="bg-[#0f1d20] border border-white/5 p-8 mb-8 shadow-2xl">
+    <div class="flex justify-between items-center mb-8">
+        <h3 class="text-xl font-bold tracking-tight text-white">Calories per day</h3>
+        <span class="font-mono text-[10px] uppercase tracking-widest text-cyan-100/40"><span class="inline-block w-2 h-2 bg-cyan-500 mr-1"></span>within goal <span class="inline-block w-2 h-2 bg-red-400 mx-1 ml-3"></span>over goal</span>
+    </div>
+    <div class="flex items-end gap-1 md:gap-2 h-56">
+        {% for r in rows %}
+        <div class="group relative flex-1 h-full flex flex-col justify-end items-center min-w-0">
+            {% if r.cal %}
+            <div class="absolute -top-8 left-1/2 -translate-x-1/2 bg-[#1a3338] border border-white/10 px-2 py-1 font-mono text-[10px] text-white opacity-0 group-hover:opacity-100 transition-opacity whitespace-nowrap z-10">{{ r.date|date:"M j" }} &middot; {{ r.cal }}</div>
+            <div class="growbar w-full rounded-t-sm {% if r.over %}bg-red-400{% else %}bg-cyan-500{% endif %} group-hover:brightness-125 transition" style="height:{{ r.height }}%; --i:{{ forloop.counter0 }}"></div>
+            {% else %}
+            <div class="w-full h-[2px] bg-white/10"></div>
+            {% endif %}
+        </div>
+        {% endfor %}
+    </div>
+    {% if show_labels %}
+    <div class="flex gap-1 md:gap-2 mt-3">
+        {% for r in rows %}<span class="flex-1 text-center font-mono text-[9px] text-cyan-100/40 min-w-0 overflow-hidden">{{ r.label }}</span>{% endfor %}
+    </div>
+    {% endif %}
+</div>
+
+<div class="bg-[#0f1d20] border border-white/5 p-8 shadow-2xl">
+    <div class="flex justify-between items-center mb-6">
+        <h3 class="text-xl font-bold tracking-tight text-white">Macro split</h3>
+        <span class="font-mono text-[10px] uppercase tracking-widest text-cyan-100/40">share of calories</span>
+    </div>
+    {% if protein_share or carbs_share or fat_share %}
+    <div class="flex h-3 rounded-full overflow-hidden mb-6">
+        <div class="fillbar bg-cyan-500" style="width:{{ protein_share }}%"></div>
+        <div class="fillbar bg-teal-300" style="width:{{ carbs_share }}%"></div>
+        <div class="fillbar bg-sky-300" style="width:{{ fat_share }}%"></div>
+    </div>
+    <div class="grid grid-cols-3 gap-4 font-mono text-xs">
+        <div><span class="inline-block w-2 h-2 bg-cyan-500 mr-2"></span><span class="text-cyan-100/60">Protein</span><div class="text-2xl text-white mt-1">{{ protein_share }}%</div></div>
+        <div><span class="inline-block w-2 h-2 bg-teal-300 mr-2"></span><span class="text-cyan-100/60">Carbs</span><div class="text-2xl text-white mt-1">{{ carbs_share }}%</div></div>
+        <div><span class="inline-block w-2 h-2 bg-sky-300 mr-2"></span><span class="text-cyan-100/60">Fat</span><div class="text-2xl text-white mt-1">{{ fat_share }}%</div></div>
+    </div>
+    {% else %}
+    <p class="font-mono text-xs text-cyan-100/40">Log some meals to see your macro split.</p>
+    {% endif %}
+    <p class="mt-6 font-mono text-[10px] uppercase tracking-widest text-cyan-100/30">Calories burned in this period: {{ total_burned }}</p>
+</div>
+{% endblock %}

@@ -1,0 +1,52 @@
+{% extends "base.html" %}
+{% block title %}Foods{% endblock %}
+{% block crumb %}Foods{% endblock %}
+{% block content %}
+<div class="flex items-end justify-between mb-10 gap-4 flex-wrap">
+    <div>
+        <p class="font-mono text-[10px] uppercase tracking-widest text-cyan-100/40 mb-2">Library</p>
+        <h2 class="text-5xl font-black tracking-tighter text-white">Foods</h2>
+    </div>
+    <a href="{% url 'add_food' %}" class="px-8 py-3 bg-cyan-500 text-black font-bold hover:bg-cyan-400 transition-all active:scale-95">Add Food</a>
+</div>
+
+<div class="flex flex-wrap items-center gap-4 mb-6">
+    <form method="get" class="flex-1 min-w-[220px] max-w-md">
+        <input type="search" name="q" value="{{ q }}" placeholder="Search foods..." class="field">
+        {% if scope %}<input type="hidden" name="scope" value="{{ scope }}">{% endif %}
+    </form>
+    <div class="flex border border-white/10 rounded-sm overflow-hidden font-mono text-xs">
+        <a href="?{% if q %}q={{ q|urlencode }}{% endif %}" class="px-4 py-3 {% if not scope %}bg-cyan-500 text-black font-bold{% else %}text-cyan-100/60 hover:text-white{% endif %}">All</a>
+        <a href="?scope=favorites{% if q %}&q={{ q|urlencode }}{% endif %}" class="px-4 py-3 {% if scope == 'favorites' %}bg-cyan-500 text-black font-bold{% else %}text-cyan-100/60 hover:text-white{% endif %}">Favorites</a>
+        <a href="?scope=mine{% if q %}&q={{ q|urlencode }}{% endif %}" class="px-4 py-3 {% if scope == 'mine' %}bg-cyan-500 text-black font-bold{% else %}text-cyan-100/60 hover:text-white{% endif %}">Mine</a>
+    </div>
+</div>
+
+<div class="bg-[#0f1d20] border border-white/5 rounded-sm overflow-hidden shadow-2xl">
+    <div class="hidden md:grid grid-cols-12 gap-4 px-8 py-4 bg-[#1a3338]/30 border-b border-white/5 font-mono text-[10px] uppercase tracking-widest text-cyan-100/40">
+        <span class="col-span-4">Name</span><span class="col-span-2">Calories</span><span class="col-span-2">Protein</span><span class="col-span-1">Carbs</span><span class="col-span-1">Fat</span><span class="col-span-2 text-right">Actions</span>
+    </div>
+    {% for food in foods %}
+    <div style="--i:{{ forloop.counter0 }}" class="row-in grid grid-cols-12 gap-4 px-8 py-4 border-b border-white/5 hover:bg-white/5 items-center">
+        <span class="col-span-12 md:col-span-4 text-white font-medium flex items-center gap-2">
+            <form method="post" action="{% url 'toggle_favorite' food.pk %}" class="inline">{% csrf_token %}<input type="hidden" name="next" value="{{ request.get_full_path }}">
+                <button type="submit" title="{% if food.id in favorite_ids %}Remove from favorites{% else %}Add to favorites{% endif %}" class="cursor-pointer text-lg leading-none {% if food.id in favorite_ids %}text-cyan-400{% else %}text-cyan-100/25 hover:text-cyan-400{% endif %}">{% if food.id in favorite_ids %}&#9733;{% else %}&#9734;{% endif %}</button></form>
+            {% include "partials/food_thumb.html" with food=food size=34 %}{{ food.name }}<span class="font-mono text-[9px] uppercase tracking-widest text-cyan-100/40">{{ food.category }}</span>{% if food.owner_id %}<span class="font-mono text-[9px] uppercase tracking-widest text-cyan-400 border border-cyan-500/30 px-1.5 py-0.5">Mine</span>{% endif %}</span>
+        <span class="col-span-3 md:col-span-2 font-mono text-sm text-white">{{ food.calories|floatformat:"-1" }} cal</span>
+        <span class="col-span-3 md:col-span-2 font-mono text-xs text-cyan-100/70">{{ food.protein|floatformat:"-1" }}g</span>
+        <span class="col-span-3 md:col-span-1 font-mono text-xs text-cyan-100/70">{{ food.carbs|floatformat:"-1" }}g</span>
+        <span class="col-span-3 md:col-span-1 font-mono text-xs text-cyan-100/70">{{ food.fat|floatformat:"-1" }}g</span>
+        <span class="col-span-12 md:col-span-2 flex md:justify-end gap-3">
+            {% if user.is_staff or food.owner_id == user.id %}
+            <a href="{% url 'edit_food' food.pk %}" class="font-mono text-[10px] uppercase tracking-widest text-cyan-100/60 hover:text-cyan-400">Edit</a>
+            <a href="{% url 'delete_food' food.pk %}" class="font-mono text-[10px] uppercase tracking-widest text-cyan-100/60 hover:text-red-400">Delete</a>
+            {% endif %}
+        </span>
+    </div>
+    {% empty %}
+    <p class="px-8 py-8 font-mono text-xs text-cyan-100/40">{% if q %}No foods match "{{ q }}".{% else %}No foods yet. Add your first one.{% endif %}</p>
+    {% endfor %}
+</div>
+<p class="mt-3 font-mono text-[10px] uppercase tracking-widest text-cyan-100/30">Values are per 100 g</p>
+{% include "partials/pager.html" %}
+{% endblock %}

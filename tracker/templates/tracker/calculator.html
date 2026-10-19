@@ -1,0 +1,43 @@
+{% extends "base.html" %}
+{% block title %}Calculator{% endblock %}
+{% block crumb %}Calculator{% endblock %}
+{% block content %}
+<div class="mb-10">
+    <p class="font-mono text-[10px] uppercase tracking-widest text-cyan-100/40 mb-2">Targets</p>
+    <h2 class="text-5xl font-black tracking-tighter text-white">Calorie Calculator</h2>
+</div>
+
+<div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
+    <form method="post" class="bg-[#0f1d20] p-8 border border-white/10 shadow-2xl">
+        {% csrf_token %}
+        {% for field in form %}
+        <div class="mb-5">
+            <label class="lbl" for="{{ field.id_for_label }}">{{ field.label }}</label>{{ field }}
+            {% if field.errors %}<p class="mt-2 font-mono text-xs text-red-400">{{ field.errors.0 }}</p>{% endif %}
+        </div>
+        {% endfor %}
+        <button type="submit" class="px-12 py-4 bg-cyan-500 text-black font-bold hover:bg-cyan-400 transition-all active:scale-95 cursor-pointer">Calculate</button>
+    </form>
+
+    <div class="bg-[#0f1d20] p-8 border border-white/10 shadow-2xl h-fit">
+        {% if result %}
+        <p class="font-mono text-[10px] uppercase tracking-widest text-cyan-100/40 mb-6">Suggested daily targets</p>
+        <div class="grid grid-cols-2 gap-6 mb-8">
+            <div><div class="font-mono text-[10px] uppercase tracking-widest text-cyan-100/40">Calories</div><div class="text-4xl font-black text-white mt-2">{{ result.calories }}</div></div>
+            <div><div class="font-mono text-[10px] uppercase tracking-widest text-cyan-100/40">Protein</div><div class="text-4xl font-black text-white mt-2">{{ result.protein }}<span class="text-lg text-cyan-100/60 ml-1">g</span></div></div>
+            <div><div class="font-mono text-[10px] uppercase tracking-widest text-cyan-100/40">Water</div><div class="text-2xl font-black text-white mt-2">{{ result.water_ml }}<span class="text-sm text-cyan-100/60 ml-1">ml</span></div></div>
+            <div><div class="font-mono text-[10px] uppercase tracking-widest text-cyan-100/40">Maintenance (TDEE)</div><div class="text-2xl font-black text-white mt-2">{{ result.tdee }}</div></div>
+        </div>
+        <p class="font-mono text-[10px] text-cyan-100/40 mb-6">Resting metabolism (BMR): {{ result.bmr }} kcal. Based on the Mifflin-St Jeor equation. This is an estimate, not medical advice.</p>
+        <form method="post">
+            {% csrf_token %}
+            {% for field in form %}<input type="hidden" name="{{ field.html_name }}" value="{{ field.value }}">{% endfor %}
+            <input type="hidden" name="apply" value="1">
+            <button type="submit" class="px-8 py-3 bg-cyan-500 text-black font-bold hover:bg-cyan-400 transition-all active:scale-95 cursor-pointer">Apply to my goals</button>
+        </form>
+        {% else %}
+        <p class="font-mono text-xs text-cyan-100/40 leading-relaxed">Fill in the form to get a suggested daily calorie, protein and water target based on your body and goal. You can apply it to your goals with one click.</p>
+        {% endif %}
+    </div>
+</div>
+{% endblock %}

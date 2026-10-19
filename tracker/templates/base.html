@@ -1,0 +1,283 @@
+{% load static %}<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="theme-color" content="#0a1214">
+    <link rel="manifest" href="{% url 'manifest' %}">
+    <link rel="icon" type="image/png" href="{% static 'tracker/icons/icon-192.png' %}">
+    <link rel="apple-touch-icon" href="{% static 'tracker/icons/apple-touch-icon.png' %}">
+    <title>{% block title %}Calorio{% endblock %} | Calorio</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&family=JetBrains+Mono:wght@400;500;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined">
+    <script src="https://cdn.jsdelivr.net/npm/@tailwindcss/browser@4"></script>
+    <style type="text/tailwindcss">
+        @theme {
+            --font-sans: "Inter", ui-sans-serif, system-ui, sans-serif;
+            --font-mono: "JetBrains Mono", ui-monospace, monospace;
+        }
+    </style>
+    <style>
+        body { color:#e6f4f5; background-color:#0a1214; -webkit-font-smoothing:antialiased; }
+        .material-symbols-outlined { font-family:'Material Symbols Outlined'; font-size:24px; font-weight:400; line-height:1; display:inline-block; letter-spacing:normal; text-transform:none; white-space:nowrap; direction:ltr; font-style:normal; }
+        ::-webkit-scrollbar { width:4px; height:4px; }
+        ::-webkit-scrollbar-thumb { background:#1e5a66; border-radius:2px; }
+        ::-webkit-scrollbar-thumb:hover { background:#2a8196; }
+        .field { background:#1a3338; border:0; color:#fff; width:100%; padding:.75rem 1rem; border-radius:.125rem; font-family:'JetBrains Mono',monospace; font-size:.875rem; outline:none; }
+        .field:focus { box-shadow:0 0 0 1px #06b6d4; }
+        .field option { background:#1a3338; }
+        .lbl { display:block; margin-bottom:.5rem; font-family:'JetBrains Mono',monospace; font-size:10px; text-transform:uppercase; letter-spacing:.1em; color:#a3a3a3; }
+        .auth-form p { margin-bottom:1.25rem; display:flex; flex-direction:column; gap:.5rem; }
+        .auth-form label { font-family:'JetBrains Mono',monospace; font-size:10px; text-transform:uppercase; letter-spacing:.1em; color:#a3a3a3; }
+        .auth-form input { background:#1a3338; border:0; color:#fff; padding:.75rem 1rem; border-radius:.125rem; font-family:'JetBrains Mono',monospace; font-size:.875rem; outline:none; }
+        .auth-form input:focus { box-shadow:0 0 0 1px #06b6d4; }
+        .auth-form ul.errorlist { color:#ef4444; font-family:'JetBrains Mono',monospace; font-size:12px; line-height:1.6; list-style:none; margin-bottom:1.5rem; padding:.75rem 1rem; background:rgba(255,101,104,.08); border-left:2px solid #ef4444; }
+
+        /* ---- Transitions ---- */
+        :root { --ease:cubic-bezier(.16,1,.3,1); }
+        @keyframes blur-up { from { opacity:0; transform:translateY(16px); } to { opacity:1; transform:none; } }
+        @keyframes fade-in { from { opacity:0; } to { opacity:1; } }
+        @keyframes slide-right { from { opacity:0; transform:translateX(-24px); } to { opacity:1; transform:none; } }
+        @keyframes sheen { from { transform:translateX(-120%) skewX(-20deg); } to { transform:translateX(220%) skewX(-20deg); } }
+        main > * { animation:blur-up .9s var(--ease) both; }
+        main > *:nth-child(2) { animation-delay:.1s; }
+        main > *:nth-child(3) { animation-delay:.2s; }
+        main > *:nth-child(4) { animation-delay:.3s; }
+        main > *:nth-child(5) { animation-delay:.4s; }
+        main .grid:not(.grid-cols-12) > * { animation:blur-up .8s var(--ease) both; }
+        main .grid:not(.grid-cols-12) > *:nth-child(2) { animation-delay:.1s; }
+        main .grid:not(.grid-cols-12) > *:nth-child(3) { animation-delay:.2s; }
+        main .grid:not(.grid-cols-12) > *:nth-child(4) { animation-delay:.3s; }
+        main .grid:not(.grid-cols-12) > *:nth-child(n+5) { animation-delay:.4s; }
+        main > *, main .grid:not(.grid-cols-12) > *, aside { will-change:transform, opacity; backface-visibility:hidden; }
+        aside { animation:slide-right .8s var(--ease) both; }
+        header { animation:fade-in .6s ease both; }
+        a, button, .field, input, select { transition:background-color .35s var(--ease), color .35s var(--ease), border-color .35s var(--ease), box-shadow .35s var(--ease), transform .35s var(--ease), opacity .35s var(--ease); }
+        main a[class*="bg-cyan"], main button[class*="bg-cyan"] { position:relative; overflow:hidden; }
+        main a[class*="bg-cyan"]::after, main button[class*="bg-cyan"]::after { content:""; position:absolute; top:0; left:0; width:40%; height:100%; background:linear-gradient(90deg, transparent, rgba(255,255,255,.28), transparent); transform:translateX(-120%) skewX(-20deg); pointer-events:none; }
+        main a[class*="bg-cyan"]:hover::after, main button[class*="bg-cyan"]:hover::after { animation:sheen .8s var(--ease); }
+        main a[class*="bg-cyan"]:hover, main button[class*="bg-cyan"]:hover { transform:translateY(-2px); box-shadow:0 12px 32px rgba(6,182,212,.45); }
+        main a[class*="bg-cyan"]:active, main button[class*="bg-cyan"]:active { transform:translateY(0) scale(.97); transition-duration:.1s; }
+        .spot { position:relative; transition:transform .5s var(--ease), border-color .4s var(--ease), box-shadow .5s var(--ease); }
+        .spot::before { content:""; position:absolute; inset:0; pointer-events:none; opacity:0; transition:opacity .4s ease; background:radial-gradient(260px circle at var(--mx,50%) var(--my,50%), rgba(6,182,212,.18), transparent 70%); }
+        .spot:hover { transform:translateY(-4px); border-color:rgba(6,182,212,.55); box-shadow:0 18px 40px rgba(0,0,0,.4); }
+        .spot:hover::before { opacity:1; }
+        aside nav a:hover { transform:translateX(4px); }
+        @media (prefers-reduced-motion: reduce) { *, *::before, *::after { animation:none !important; transition:none !important; } }
+
+        /* Page switching: sidebar and top bar stay put, only the content swaps (native View Transitions) */
+        @supports (view-transition-name: none) {
+            @view-transition { navigation:auto; }
+            body > aside { view-transition-name:sidebar; animation:none; }
+            body > header { view-transition-name:topbar; animation:none; }
+            main { view-transition-name:content; }
+            main > * { animation:none; }
+            ::view-transition-group(sidebar), ::view-transition-group(topbar) { animation-duration:0s; }
+            ::view-transition-old(content) { animation:vt-leave .22s cubic-bezier(.4,0,1,1) both; }
+            ::view-transition-new(content) { animation:vt-enter .5s cubic-bezier(.16,1,.3,1) .08s both; }
+            @keyframes vt-leave { to { opacity:0; transform:translateY(-8px); } }
+            @keyframes vt-enter { from { opacity:0; transform:translateY(18px); } }
+        }
+                /* dropdown groups in the sidebar */
+        #sidenav > a.nav-link { flex:0 0 auto; }
+        @media (max-width:767px) { .nav-sub-inner .nav-link { padding-left:.75rem !important; padding-right:.75rem !important; } }
+
+        .nav-group { display:flex; flex-direction:column; }
+        .nav-sub { display:grid; grid-template-rows:0fr; transition:grid-template-rows .45s var(--ease); }
+        .nav-group.open > .nav-sub { grid-template-rows:1fr; }
+        .nav-sub-inner { overflow:hidden; min-height:0; display:flex; flex-direction:column; gap:4px; }
+        .nav-group.open > .nav-sub > .nav-sub-inner { padding-top:4px; }
+        .nav-group:not(.open) .nav-sub-inner a { pointer-events:none; }
+        .nav-toggle .chev { transition:transform .4s var(--ease); }
+        .nav-group.open .nav-toggle .chev { transform:rotate(180deg); }
+        .nav-sub-inner .nav-link { font-size:12px; }
+        /* collapsed group whose child is the current page: the pill rests on the group link, so make it readable */
+        .nav-group:not(.open):has(.is-current) > div > .nav-link { color:#000; font-weight:700; }
+                /* food thumbnails (photo with emoji fallback) */
+        .ft { display:inline-flex; align-items:center; justify-content:center; border-radius:8px; background:#13262a; overflow:hidden; flex-shrink:0; border:1px solid rgba(255,255,255,.06); }
+        .ft img { width:100%; height:100%; object-fit:cover; display:block; }
+        .ft-e { display:flex; align-items:center; justify-content:center; width:100%; height:100%; font-weight:400; line-height:1; }
+        /* sidebar pill + icon micro-motion */
+        #navpill { top:0; height:48px; will-change:transform; transition:transform .65s var(--ease), opacity .3s ease; }
+        .nav-link:not(.is-current):hover { background:rgba(255,255,255,.05); }
+        .nav-link .material-symbols-outlined { transition:transform .5s var(--ease); }
+        .nav-link:hover .material-symbols-outlined { transform:translateY(-2px) rotate(-8deg) scale(1.15); }
+        /* form focus: label slides + glows */
+        .lbl { transition:color .3s ease, transform .4s var(--ease); }
+        form div:focus-within > .lbl { color:#22d3ee; transform:translateX(4px); }
+        /* progress bars fill from zero */
+        .fillbar { transform-origin:left; animation:fillbar 1.2s var(--ease) .35s both; }
+        @keyframes fillbar { from { transform:scaleX(0); } }
+        /* table rows slide in one after another */
+        .row-in { animation:row-in .7s var(--ease) both; animation-delay:calc(var(--i, 0) * 60ms + 120ms); }
+        @keyframes row-in { from { opacity:0; transform:translateX(-18px); } to { opacity:1; transform:none; } }
+        /* newly added entry glows then fades */
+        .flash { animation:flash 2.6s ease-out .5s both; }
+        @keyframes flash { 0% { background:rgba(6,182,212,.45); box-shadow:inset 3px 0 0 #22d3ee; } 100% { background:transparent; box-shadow:inset 3px 0 0 transparent; } }
+        @media (prefers-reduced-motion: reduce) { .fillbar, .row-in, .flash { animation:none !important; } }
+
+        /* analytics bars grow up from the baseline */
+        .growbar { transform-origin:bottom; animation:growy 1s var(--ease) both; animation-delay:calc(var(--i, 0) * 30ms + 200ms); }
+        @keyframes growy { from { transform:scaleY(0); } }
+        input[type=date] { color-scheme:dark; }
+        input[type=search] { color-scheme:dark; }
+        @media (prefers-reduced-motion: reduce) { .growbar { animation:none !important; } }
+    </style>
+</head>
+<body class="bg-[#0a1214] text-[#e6f4f5] selection:bg-white/20 min-h-screen font-sans">
+{% include "partials/motion.html" %}
+    <div class="fixed top-0 right-0 w-[700px] h-[700px] bg-cyan-500/[0.06] blur-[140px] rounded-full -translate-y-1/3 translate-x-1/4 pointer-events-none z-0"></div>
+{% if user.is_authenticated %}
+    {% url 'dashboard' as u_dash %}{% url 'meal_list' as u_meals %}{% url 'add_meal' as u_addmeal %}{% url 'activity_list' as u_act %}{% url 'add_activity' as u_addact %}
+
+    <aside class="fixed left-0 top-0 h-full flex flex-col py-8 px-4 z-40 bg-[#0f1d20] w-20 md:w-64 border-r border-white/5">
+        <div class="mb-12 px-2">
+            <h1 class="text-xl font-black tracking-tighter text-white hidden md:block">Calorio</h1>
+            <div class="md:hidden"><span class="material-symbols-outlined text-white">local_fire_department</span></div>
+            <p class="font-mono text-[11px] uppercase tracking-widest text-cyan-100/60 mt-1 hidden md:block">Precision Nutrition</p>
+        </div>
+        <nav class="relative flex flex-col gap-1 flex-1 overflow-y-auto min-h-0" id="sidenav">
+            {% with n=request.resolver_match.url_name %}
+            <div id="navpill" class="absolute left-0 right-0 rounded-sm bg-cyan-500 shadow-[0_8px_24px_rgba(6,182,212,.35)] opacity-0"></div>
+            <a href="{% url 'dashboard' %}" class="nav-link relative z-10 flex items-center gap-3 px-3 py-3 flex-1 rounded-sm {% if n == "dashboard" %}is-current text-black font-bold{% else %}text-cyan-100/60 hover:text-white{% endif %}">
+                    <span class="material-symbols-outlined">dashboard</span><span class="hidden md:block font-mono text-xs uppercase tracking-widest">Dashboard</span></a>
+            <div class="nav-group {% if n == "meal_list" or n == "edit_meal" or n == "delete_meal" or n == "add_meal" or n == "saved_meals" or n == "delete_saved_meal" %}open{% endif %}" data-group="meals">
+                <div class="flex items-stretch">
+                <a href="{% url 'meal_list' %}" class="nav-link relative z-10 flex items-center gap-3 px-3 py-3 flex-1 rounded-sm {% if n == "meal_list" or n == "edit_meal" or n == "delete_meal" %}is-current text-black font-bold{% else %}text-cyan-100/60 hover:text-white{% endif %}">
+                    <span class="material-symbols-outlined">restaurant</span><span class="hidden md:block font-mono text-xs uppercase tracking-widest">Meals</span></a>
+                    <button type="button" class="nav-toggle hidden md:flex items-center px-2 text-cyan-100/50 hover:text-white cursor-pointer" aria-label="Toggle Meals menu" aria-expanded="false"><span class="material-symbols-outlined chev" style="font-size:20px">expand_more</span></button>
+                </div>
+                <div class="nav-sub"><div class="nav-sub-inner">
+                <a href="{% url 'add_meal' %}" class="nav-link relative z-10 flex items-center gap-3 pl-9 pr-3 py-2.5 rounded-sm {% if n == "add_meal" %}is-current text-black font-bold{% else %}text-cyan-100/60 hover:text-white{% endif %}">
+                    <span class="material-symbols-outlined" style="font-size:20px">add_circle</span><span class="hidden md:block font-mono text-xs uppercase tracking-widest">Add Meal</span></a>
+                <a href="{% url 'saved_meals' %}" class="nav-link relative z-10 flex items-center gap-3 pl-9 pr-3 py-2.5 rounded-sm {% if n == "saved_meals" or n == "delete_saved_meal" %}is-current text-black font-bold{% else %}text-cyan-100/60 hover:text-white{% endif %}">
+                    <span class="material-symbols-outlined" style="font-size:20px">bookmark</span><span class="hidden md:block font-mono text-xs uppercase tracking-widest">Saved Meals</span></a>
+                </div></div>
+            </div>
+            <div class="nav-group {% if n == "activity_list" or n == "edit_activity" or n == "delete_activity" or n == "add_activity" %}open{% endif %}" data-group="activity">
+                <div class="flex items-stretch">
+                <a href="{% url 'activity_list' %}" class="nav-link relative z-10 flex items-center gap-3 px-3 py-3 flex-1 rounded-sm {% if n == "activity_list" or n == "edit_activity" or n == "delete_activity" %}is-current text-black font-bold{% else %}text-cyan-100/60 hover:text-white{% endif %}">
+                    <span class="material-symbols-outlined">directions_run</span><span class="hidden md:block font-mono text-xs uppercase tracking-widest">Activity</span></a>
+                    <button type="button" class="nav-toggle hidden md:flex items-center px-2 text-cyan-100/50 hover:text-white cursor-pointer" aria-label="Toggle Activity menu" aria-expanded="false"><span class="material-symbols-outlined chev" style="font-size:20px">expand_more</span></button>
+                </div>
+                <div class="nav-sub"><div class="nav-sub-inner">
+                <a href="{% url 'add_activity' %}" class="nav-link relative z-10 flex items-center gap-3 pl-9 pr-3 py-2.5 rounded-sm {% if n == "add_activity" %}is-current text-black font-bold{% else %}text-cyan-100/60 hover:text-white{% endif %}">
+                    <span class="material-symbols-outlined" style="font-size:20px">bolt</span><span class="hidden md:block font-mono text-xs uppercase tracking-widest">Add Activity</span></a>
+                </div></div>
+            </div>
+            <a href="{% url 'weight' %}" class="nav-link relative z-10 flex items-center gap-3 px-3 py-3 flex-1 rounded-sm {% if n == "weight" or n == "delete_weight" %}is-current text-black font-bold{% else %}text-cyan-100/60 hover:text-white{% endif %}">
+                    <span class="material-symbols-outlined">monitor_weight</span><span class="hidden md:block font-mono text-xs uppercase tracking-widest">Weight</span></a>
+            <a href="{% url 'analytics' %}" class="nav-link relative z-10 flex items-center gap-3 px-3 py-3 flex-1 rounded-sm {% if n == "analytics" %}is-current text-black font-bold{% else %}text-cyan-100/60 hover:text-white{% endif %}">
+                    <span class="material-symbols-outlined">monitoring</span><span class="hidden md:block font-mono text-xs uppercase tracking-widest">Analytics</span></a>
+            <a href="{% url 'food_list' %}" class="nav-link relative z-10 flex items-center gap-3 px-3 py-3 flex-1 rounded-sm {% if n == "food_list" or n == "add_food" or n == "edit_food" or n == "delete_food" %}is-current text-black font-bold{% else %}text-cyan-100/60 hover:text-white{% endif %}">
+                    <span class="material-symbols-outlined">nutrition</span><span class="hidden md:block font-mono text-xs uppercase tracking-widest">Foods</span></a>
+            <a href="{% url 'recipes' %}" class="nav-link relative z-10 flex items-center gap-3 px-3 py-3 flex-1 rounded-sm {% if n == "recipes" or n == "recipe_detail" %}is-current text-black font-bold{% else %}text-cyan-100/60 hover:text-white{% endif %}">
+                    <span class="material-symbols-outlined">menu_book</span><span class="hidden md:block font-mono text-xs uppercase tracking-widest">Recipes</span></a>
+            <a href="{% url 'goals' %}" class="nav-link relative z-10 flex items-center gap-3 px-3 py-3 flex-1 rounded-sm {% if n == "goals" or n == "calculator" %}is-current text-black font-bold{% else %}text-cyan-100/60 hover:text-white{% endif %}">
+                    <span class="material-symbols-outlined">flag</span><span class="hidden md:block font-mono text-xs uppercase tracking-widest">Goals</span></a>
+            {% endwith %}
+        </nav>
+        <form method="post" action="{% url 'logout' %}" class="border-t border-white/5 pt-4">
+            {% csrf_token %}
+            <button type="submit" class="w-full flex items-center gap-3 px-3 py-3 text-cyan-100/60 hover:text-white transition-all cursor-pointer">
+                <span class="material-symbols-outlined">logout</span><span class="hidden md:block font-mono text-xs uppercase tracking-widest">Log Out</span></button>
+        </form>
+    </aside>
+
+    <header class="fixed top-0 right-0 left-20 md:left-64 z-30 bg-[#0a1214]/80 backdrop-blur-md border-b border-white/10 flex justify-between items-center px-8 py-4">
+        <span class="font-mono text-[11px] uppercase tracking-widest text-cyan-100/60">{% block crumb %}Overview{% endblock %}</span>
+        <a href="{% url 'account' %}" title="Account" class="flex items-center gap-2 font-mono text-xs text-cyan-100/70 hover:text-white"><span class="material-symbols-outlined" style="font-size:20px">account_circle</span>{{ user.username }}</a>
+    </header>
+
+    <main class="relative z-10 ml-20 md:ml-64 pt-28 pb-16 px-8 md:px-12">
+        {% block content %}{% endblock %}
+    </main>
+{% else %}
+    <header class="fixed top-0 w-full z-50 bg-[#0a1214]/80 backdrop-blur-md border-b border-white/10 flex justify-between items-center px-8 py-4">
+        <span class="text-xl font-black tracking-tighter text-white">Calorio</span>
+        <span class="font-mono text-[11px] uppercase tracking-widest text-cyan-100/60">Precision Nutrition</span>
+    </header>
+    <main class="relative z-10 min-h-screen flex items-center justify-center px-6 pt-20">
+        {% block auth %}{% endblock %}
+    </main>
+{% endif %}
+<script>
+    document.addEventListener('mousemove', e => {
+        const c = e.target.closest && e.target.closest('.spot');
+        if (!c) return;
+        const r = c.getBoundingClientRect();
+        c.style.setProperty('--mx', (e.clientX - r.left) + 'px');
+        c.style.setProperty('--my', (e.clientY - r.top) + 'px');
+    });
+    document.querySelectorAll('[data-count]').forEach(el => {
+        const end = parseFloat(el.dataset.count); if (isNaN(end)) return;
+        const dec = (el.dataset.count.split('.')[1] || '').length, t0 = performance.now(), dur = 1200;
+        (function tick(t) {
+            const p = Math.min((t - t0) / dur, 1), v = end * (1 - Math.pow(1 - p, 4));
+            el.textContent = v.toFixed(dec); if (p < 1) requestAnimationFrame(tick);
+        })(t0);
+    });
+</script>
+<script>
+    (function () {
+        const nav = document.getElementById('sidenav'), pill = document.getElementById('navpill');
+        if (!nav) return;
+        const store = {
+            get(k) { try { return sessionStorage.getItem('nav-' + k); } catch (e) { return null; } },
+            set(k, v) { try { sessionStorage.setItem('nav-' + k, v); } catch (e) {} },
+        };
+        // restore each group's open state; a group containing the current page always starts open
+        nav.querySelectorAll('[data-group]').forEach((g) => {
+            const id = g.dataset.group, hasCurrent = !!g.querySelector('.is-current'), saved = store.get(id);
+            if (hasCurrent || saved === '1') g.classList.add('open');
+            else if (saved === '0') g.classList.remove('open');
+            const btn = g.querySelector('.nav-toggle');
+            btn.setAttribute('aria-expanded', g.classList.contains('open'));
+            btn.addEventListener('click', () => {
+                const open = g.classList.toggle('open');
+                btn.setAttribute('aria-expanded', open);
+                store.set(id, open ? '1' : '0');
+                followPill(500);
+            });
+        });
+
+        function target() { return nav.querySelector('.nav-link.is-current'); }
+        function place(animate) {
+            const cur = target();
+            if (!pill || !cur) return;
+            // if the current item sits in a collapsed group, park the pill on the group's own link
+            let el = cur;
+            const grp = cur.closest('.nav-group');
+            if (grp && !grp.classList.contains('open')) el = grp.querySelector('.nav-link');
+            pill.style.height = el.offsetHeight + 'px';
+            pill.style.transform = 'translateY(' + el.offsetTop + 'px)';
+        }
+        function followPill(ms) {                    // keep the pill glued to its link while a group animates
+            const t0 = performance.now();
+            (function tick(t) { place(); if (t - t0 < ms) requestAnimationFrame(tick); })(t0);
+        }
+
+        const cur = target();
+        if (pill && cur) {
+            const top = cur.offsetTop;
+            let from = top;
+            try { const p = sessionStorage.getItem('pilltop'); if (p !== null) from = parseFloat(p); sessionStorage.setItem('pilltop', top); } catch (e) {}
+            pill.style.height = cur.offsetHeight + 'px';
+            pill.style.transition = 'none'; pill.style.transform = 'translateY(' + from + 'px)'; pill.style.opacity = '1'; pill.getBoundingClientRect();
+            requestAnimationFrame(() => { pill.style.transition = ''; pill.style.transform = 'translateY(' + top + 'px)'; });
+        }
+    })();
+</script>
+<script>
+    if ('serviceWorker' in navigator) {
+        window.addEventListener('load', () => navigator.serviceWorker.register('/sw.js').catch(() => {}));
+        // on logout, ask the worker to forget cached private pages
+        document.addEventListener('submit', (e) => {
+            if (e.target.action && e.target.action.indexOf('/accounts/logout/') !== -1 && navigator.serviceWorker.controller) navigator.serviceWorker.controller.postMessage('clear');
+        });
+    }
+</script>
+</body>
+</html>

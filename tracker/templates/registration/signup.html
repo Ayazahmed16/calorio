@@ -1,0 +1,14 @@
+{% extends "base.html" %}
+{% block title %}Sign up{% endblock %}
+{% block auth %}
+<div class="bg-[#0f1d20] p-8 border border-white/10 shadow-2xl rounded-sm w-full max-w-md">
+    <p class="font-mono text-[10px] uppercase tracking-widest text-cyan-100/40 mb-2">Create account</p>
+    <h2 class="text-4xl font-black tracking-tighter text-white mb-8">Sign Up</h2>
+    <form method="post" class="auth-form">
+        {% csrf_token %}
+        {{ form.as_p }}
+        <button type="submit" class="w-full mt-2 px-12 py-4 bg-cyan-500 text-black font-bold hover:bg-cyan-400 transition-all active:scale-95 cursor-pointer">Create Account</button>
+    </form>
+    <p class="mt-6 text-center font-mono text-xs text-cyan-100/50">Already have an account? <a href="{% url 'login' %}" class="text-cyan-400 hover:underline">Log in</a></p>
+</div>
+{% endblock %}

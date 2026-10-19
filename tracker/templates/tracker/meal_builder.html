@@ -1,0 +1,227 @@
+{% extends "base.html" %}
+{% block title %}Add Meal{% endblock %}
+{% block crumb %}Add Meal{% endblock %}
+{% block content %}
+<div class="mb-8">
+    <p class="font-mono text-[10px] uppercase tracking-widest text-cyan-100/40 mb-2">New Entry</p>
+    <h2 class="text-5xl font-black tracking-tighter text-white">Add a Meal</h2>
+    <p class="mt-3 text-sm text-cyan-100/60 max-w-xl">Build your plate by group. Add as many foods as you like under Protein, Carbs and Fats, then save them together as one meal.</p>
+</div>
+
+<form method="post" id="meal-form" class="grid grid-cols-1 xl:grid-cols-3 gap-6 items-start">
+    {% csrf_token %}
+    <div class="xl:col-span-2 space-y-6">
+
+        <div class="bg-[#0f1d20] border border-white/10 p-6 grid grid-cols-1 sm:grid-cols-2 gap-5 shadow-2xl">
+            {% for field in header %}
+            <div>
+                <label class="lbl" for="{{ field.id_for_label }}">{{ field.label }}</label>{{ field }}
+                {% if field.errors %}<p class="mt-2 font-mono text-xs text-red-400">{{ field.errors.0 }}</p>{% endif %}
+            </div>
+            {% endfor %}
+        </div>
+
+        {% if not has_foods %}
+        <div class="border-l-2 border-cyan-500 bg-[#0f1d20] px-4 py-3 font-mono text-xs text-cyan-100/60">No foods yet. <a href="{{ new_food_url }}" class="text-cyan-400 underline">Add your first food</a> to start logging.</div>
+        {% endif %}
+        {% if error %}<div class="border-l-2 border-red-500 bg-red-500/10 px-4 py-3 font-mono text-xs text-red-400">{{ error }}</div>{% endif %}
+
+        {% for g in groups %}
+        <section data-group="{{ g.key }}" class="grp bg-[#0f1d20] border border-white/10 p-6 shadow-2xl">
+            <div class="flex flex-wrap items-start justify-between gap-3 mb-4">
+                <div class="flex items-center gap-3">
+                    <span class="grp-dot grp-{{ g.key }}"></span>
+                    <div>
+                        <h3 class="text-lg font-bold text-white leading-none">{{ g.label }}</h3>
+                        <p class="font-mono text-[10px] text-cyan-100/40 mt-1">{{ g.hint }}</p>
+                    </div>
+                </div>
+                <label class="flex items-center gap-2 font-mono text-[10px] uppercase tracking-widest text-cyan-100/50 cursor-pointer"><input type="checkbox" class="show-all accent-cyan-500"> All foods</label>
+            </div>
+            <div class="rows space-y-3"></div>
+            <div class="flex flex-wrap items-center gap-2 mt-4">
+                <button type="button" class="add-row px-4 py-2 border border-cyan-500/50 text-cyan-400 text-sm font-semibold hover:bg-cyan-500/10 cursor-pointer">+ Add food</button>
+                <span class="chips flex flex-wrap gap-2"></span>
+            </div>
+        </section>
+        {% endfor %}
+    </div>
+
+    <aside class="bg-[#0f1d20] border border-white/10 p-6 shadow-2xl xl:sticky xl:top-24">
+        <h3 class="text-lg font-bold text-white mb-1">Meal summary</h3>
+        <p id="sum-empty" class="font-mono text-[11px] text-cyan-100/40 mb-4">Pick a food and enter grams to see totals.</p>
+        <div class="text-5xl font-black tracking-tighter text-white"><span id="sum-cal">0</span><span class="text-lg text-cyan-100/50 ml-2">cal</span></div>
+        <div class="grid grid-cols-3 gap-3 mt-5 mb-5 font-mono">
+            <div><div class="text-[10px] uppercase tracking-widest text-cyan-100/40">Protein</div><div class="text-white text-lg"><span id="sum-p">0</span>g</div></div>
+            <div><div class="text-[10px] uppercase tracking-widest text-cyan-100/40">Carbs</div><div class="text-white text-lg"><span id="sum-c">0</span>g</div></div>
+            <div><div class="text-[10px] uppercase tracking-widest text-cyan-100/40">Fat</div><div class="text-white text-lg"><span id="sum-f">0</span>g</div></div>
+        </div>
+        <div id="sum-bar" class="flex h-2 rounded-full overflow-hidden bg-white/10 mb-6"></div>
+        <ul id="sum-groups" class="space-y-1 mb-6 font-mono text-xs text-cyan-100/60"></ul>
+        <button type="submit" class="w-full px-8 py-4 bg-cyan-500 text-black font-bold hover:bg-cyan-400 transition-all active:scale-95 cursor-pointer">Save meal</button>
+        <a href="{% url 'meal_list' %}" class="block text-center mt-3 px-8 py-3 border border-white/10 text-white font-bold hover:border-white/30 transition-all">Cancel</a>
+    </aside>
+</form>
+
+{{ food_data|json_script:"food-data" }}
+{{ rows|json_script:"init-rows" }}
+{{ quick|json_script:"quick-data" }}
+
+<style>
+    .grp-dot { width:10px; height:10px; border-radius:50%; display:inline-block; }
+    .grp-protein { background:#22d3ee; } .grp-carbs { background:#5eead4; } .grp-fats { background:#fbbf24; } .grp-other { background:#94a3b8; }
+    .brow { display:grid; grid-template-columns:minmax(0,1fr) 110px 70px 32px; gap:.6rem; align-items:center; }
+    @media (max-width:640px) { .brow { grid-template-columns:minmax(0,1fr) 32px; } .brow .combo { grid-column:1 / -1; } .brow .kcal { display:none; } }
+    .brow .kcal { font-family:'JetBrains Mono',monospace; font-size:.7rem; color:rgba(207,250,254,.55); text-align:right; }
+    .brow .rm { color:rgba(207,250,254,.4); cursor:pointer; font-size:1.2rem; line-height:1; }
+    .brow .rm:hover { color:#f87171; }
+    .berr { grid-column:1 / -1; font-family:'JetBrains Mono',monospace; font-size:.7rem; color:#f87171; }
+    .brow-wrap { animation:fade-in .35s ease both; }
+    .combo { position:relative; }
+    .combo-list { position:absolute; left:0; right:0; top:calc(100% + 4px); z-index:30; max-height:300px; overflow-y:auto; background:#13262a;
+                  border:1px solid rgba(6,182,212,.4); box-shadow:0 18px 40px rgba(0,0,0,.5); border-radius:2px; display:none; }
+    .combo.open .combo-list { display:block; }
+    .combo-item { padding:.5rem .9rem; display:flex; align-items:center; gap:.7rem; font-family:'JetBrains Mono',monospace; font-size:.78rem; color:#e6f4f5; cursor:pointer; width:100%; text-align:left; }
+    .combo-item.active, .combo-item:hover { background:rgba(6,182,212,.18); color:#fff; }
+    .combo-item mark { background:none; color:#22d3ee; font-weight:700; }
+    .combo-item .meta { margin-left:auto; color:rgba(207,250,254,.5); font-size:.68rem; white-space:nowrap; }
+    .combo-new { color:#22d3ee; border-top:1px solid rgba(255,255,255,.08); }
+    .combo-empty { padding:.6rem .9rem; font-family:'JetBrains Mono',monospace; font-size:.72rem; color:rgba(207,250,254,.4); }
+    .chip { padding:.2rem .7rem; border:1px solid rgba(255,255,255,.1); font-size:.72rem; color:#e6f4f5; cursor:pointer; display:inline-flex; align-items:center; gap:.4rem; }
+    .chip:hover { border-color:rgba(6,182,212,.6); color:#22d3ee; }
+</style>
+
+<script>
+(function () {
+    const foods = JSON.parse(document.getElementById('food-data').textContent);
+    const initRows = JSON.parse(document.getElementById('init-rows').textContent);
+    const quick = JSON.parse(document.getElementById('quick-data').textContent);
+    const byId = Object.fromEntries(foods.map(f => [String(f.id), f]));
+    const newUrl = '{{ new_food_url }}', back = location.pathname;
+    const num = n => Math.round(n * 10) / 10;
+    const esc = s => String(s).replace(/[&<>"]/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]));
+
+    function thumb(f, size) {
+        const s = document.createElement('span'); s.className = 'ft'; s.style.cssText = 'width:' + size + 'px;height:' + size + 'px;font-size:' + Math.round(size * .55) + 'px';
+        const e = document.createElement('b'); e.className = 'ft-e'; e.textContent = f.emoji || '\u{1F37D}️';
+        if (f.image && /^https:\/\//.test(f.image)) {
+            const i = document.createElement('img'); i.alt = ''; i.loading = 'lazy'; i.referrerPolicy = 'no-referrer'; i.src = f.image;
+            e.style.display = 'none'; i.onerror = () => { i.style.display = 'none'; e.style.display = 'flex'; }; s.append(i, e);
+        } else s.append(e);
+        return s;
+    }
+
+    document.querySelectorAll('.grp').forEach(section => {
+        const key = section.dataset.group, rowsEl = section.querySelector('.rows'), showAll = section.querySelector('.show-all');
+        const pool = () => foods.filter(f => showAll.checked || f.category === key);
+
+        function addRow(init) {
+            init = init || { food: '', qty: '', error: '' };
+            const wrap = document.createElement('div'); wrap.className = 'brow-wrap';
+            const row = document.createElement('div'); row.className = 'brow';
+            const combo = document.createElement('div'); combo.className = 'combo';
+            const text = document.createElement('input'); text.type = 'text'; text.className = 'field'; text.autocomplete = 'off';
+            text.placeholder = 'Search ' + key + ' foods...'; text.setAttribute('role', 'combobox');
+            const hid = document.createElement('input'); hid.type = 'hidden'; hid.name = key + '_food';
+            const list = document.createElement('div'); list.className = 'combo-list'; list.setAttribute('role', 'listbox');
+            combo.append(text, hid, list);
+            const qty = document.createElement('input'); qty.type = 'number'; qty.name = key + '_qty'; qty.className = 'field';
+            qty.placeholder = 'grams'; qty.min = '0.1'; qty.max = '5000'; qty.step = '0.1'; qty.inputMode = 'decimal';
+            const kcal = document.createElement('span'); kcal.className = 'kcal';
+            const rm = document.createElement('button'); rm.type = 'button'; rm.className = 'rm'; rm.title = 'Remove'; rm.textContent = '×';
+            row.append(combo, qty, kcal, rm); wrap.append(row);
+            if (init.error) { const e = document.createElement('div'); e.className = 'berr'; e.textContent = init.error; wrap.append(e); }
+            rowsEl.append(wrap);
+
+            let rows = [], active = -1;
+            const chosen = () => byId[hid.value];
+            function calc() { const f = chosen(), g = parseFloat(qty.value); kcal.textContent = f && g > 0 ? num(f.calories * g / 100) + ' cal' : ''; summary(); }
+            function render() {
+                const q = (hid.value && text.value === (chosen() || {}).name ? '' : text.value).trim().toLowerCase();
+                const all = pool(), starts = all.filter(f => f.name.toLowerCase().startsWith(q)), has = all.filter(f => !f.name.toLowerCase().startsWith(q) && f.name.toLowerCase().includes(q));
+                const matches = (q ? starts.concat(has) : all).slice(0, 30);
+                list.innerHTML = ''; rows = []; active = -1;
+                matches.forEach(f => {
+                    const b = document.createElement('button'); b.type = 'button'; b.className = 'combo-item';
+                    const nm = document.createElement('span'); const i = q ? f.name.toLowerCase().indexOf(q) : -1;
+                    nm.innerHTML = i >= 0 ? esc(f.name.slice(0, i)) + '<mark>' + esc(f.name.slice(i, i + q.length)) + '</mark>' + esc(f.name.slice(i + q.length)) : esc(f.name);
+                    const meta = document.createElement('span'); meta.className = 'meta'; meta.textContent = num(f.calories) + ' cal';
+                    b.append(thumb(f, 28), nm, meta); b.onmousedown = e => { e.preventDefault(); choose(f); };
+                    list.appendChild(b); rows.push({ el: b, food: f });
+                });
+                if (!matches.length) { const d = document.createElement('div'); d.className = 'combo-empty'; d.textContent = showAll.checked ? 'No food matches' : 'No ' + key + ' food matches. Tick "All foods" to search everything.'; list.appendChild(d); }
+                const a = document.createElement('a'); a.className = 'combo-item combo-new';
+                a.href = newUrl + '?' + (text.value.trim() && !hid.value ? 'name=' + encodeURIComponent(text.value.trim()) + '&' : '') + 'next=' + encodeURIComponent(back);
+                a.textContent = text.value.trim() && !hid.value ? '+ Add “' + text.value.trim() + '” as a new food' : '+ Add a new food';
+                list.appendChild(a); rows.push({ el: a, link: true });
+            }
+            const open = () => { render(); combo.classList.add('open'); }, close = () => combo.classList.remove('open');
+            function choose(f) { hid.value = String(f.id); text.value = f.name; close(); calc(); if (!qty.value) qty.focus(); }
+            function mark(i) { rows.forEach((x, k) => x.el.classList.toggle('active', k === i)); active = i; if (rows[i]) rows[i].el.scrollIntoView({ block: 'nearest' }); }
+
+            text.addEventListener('focus', () => { text.select(); open(); });
+            text.addEventListener('input', () => { hid.value = ''; calc(); open(); });
+            text.addEventListener('keydown', e => {
+                if (e.key === 'ArrowDown') { e.preventDefault(); if (!combo.classList.contains('open')) open(); mark(Math.min(active + 1, rows.length - 1)); }
+                else if (e.key === 'ArrowUp') { e.preventDefault(); mark(Math.max(active - 1, 0)); }
+                else if (e.key === 'Enter' && combo.classList.contains('open')) {
+                    e.preventDefault(); const it = rows[active] || (rows.length === 2 ? rows[0] : null);
+                    if (it) it.link ? (location.href = it.el.href) : choose(it.food);
+                } else if (e.key === 'Escape') { close(); text.value = chosen() ? chosen().name : ''; }
+            });
+            text.addEventListener('blur', () => setTimeout(() => {
+                close();
+                if (!hid.value) { const m = foods.find(f => f.name.toLowerCase() === text.value.trim().toLowerCase()); if (m) choose(m); }
+            }, 150));
+            document.addEventListener('click', e => { if (!combo.contains(e.target)) close(); });
+            qty.addEventListener('input', calc);
+            rm.onclick = () => { wrap.remove(); summary(); };
+
+            if (init.food && byId[init.food]) { hid.value = init.food; text.value = byId[init.food].name; if (byId[init.food].category !== key) showAll.checked = true; }
+            qty.value = init.qty || ''; calc();
+            return { text, qty };
+        }
+
+        section.querySelector('.add-row').onclick = () => { const r = addRow(); r.text.focus(); };
+        (initRows[key] || []).forEach(addRow);
+        if (!rowsEl.children.length && key !== 'other') addRow();
+        if (!rowsEl.children.length && key === 'other') { /* 'Other' starts empty; use the button */ }
+
+        // quick-add chips: favourites and recent foods that belong to this group
+        const chips = section.querySelector('.chips');
+        quick.filter(q => q.category === key).slice(0, 5).forEach(q => {
+            const b = document.createElement('button'); b.type = 'button'; b.className = 'chip';
+            b.textContent = (q.favorite ? '★ ' : '') + q.name;
+            b.onclick = () => {
+                const blank = Array.from(rowsEl.querySelectorAll('.brow')).find(r => !r.querySelector('input[type=hidden]').value);
+                if (blank) { blank.parentNode.remove(); }
+                const r = addRow({ food: String(q.id), qty: '', error: '' }); r.qty.focus();
+            };
+            chips.appendChild(b);
+        });
+    });
+
+    // ---------- live meal summary
+    const groupNames = { protein: 'Protein', carbs: 'Carbs', fats: 'Fats', other: 'Other' };
+    function summary() {
+        let cal = 0, p = 0, c = 0, f = 0, count = 0; const per = {};
+        document.querySelectorAll('.grp').forEach(sec => {
+            const key = sec.dataset.group; per[key] = per[key] || 0;
+            sec.querySelectorAll('.brow').forEach(r => {
+                const food = byId[r.querySelector('input[type=hidden]').value], g = parseFloat(r.querySelector('input[type=number]').value);
+                if (!food || !(g > 0)) return;
+                count++; const k = g / 100; cal += food.calories * k; p += food.protein * k; c += food.carbs * k; f += food.fat * k; per[key] += food.calories * k;
+            });
+        });
+        document.getElementById('sum-cal').textContent = Math.round(cal);
+        document.getElementById('sum-p').textContent = num(p); document.getElementById('sum-c').textContent = num(c); document.getElementById('sum-f').textContent = num(f);
+        document.getElementById('sum-empty').style.display = count ? 'none' : 'block';
+        const kc = p * 4 + c * 4 + f * 9, bar = document.getElementById('sum-bar'); bar.innerHTML = '';
+        [['#22d3ee', p * 4], ['#5eead4', c * 4], ['#fbbf24', f * 9]].forEach(([col, v]) => { if (kc > 0) { const s = document.createElement('div'); s.style.cssText = 'height:100%;background:' + col + ';width:' + (v / kc * 100) + '%;transition:width .4s'; bar.appendChild(s); } });
+        const ul = document.getElementById('sum-groups'); ul.innerHTML = '';
+        Object.keys(per).forEach(k => { if (per[k] > 0) { const li = document.createElement('li'); li.className = 'flex justify-between'; li.innerHTML = '<span>' + groupNames[k] + '</span><span class="text-white">' + Math.round(per[k]) + ' cal</span>'; ul.appendChild(li); } });
+    }
+    summary();
+})();
+</script>
+{% endblock %}

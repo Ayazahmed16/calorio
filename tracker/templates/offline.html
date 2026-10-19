@@ -1,0 +1,24 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="theme-color" content="#0a1214">
+    <title>Offline | Calorio</title>
+    <link rel="icon" type="image/png" href="/static/tracker/icons/icon-192.png">
+    <style>
+        body { margin:0; min-height:100vh; display:flex; align-items:center; justify-content:center; background:#0a1214; color:#e6f4f5;
+               font-family:'Inter',system-ui,sans-serif; text-align:center; padding:24px; }
+        h1 { font-size:2.5rem; letter-spacing:-.03em; margin:0 0 12px; }
+        p { color:rgba(207,250,254,.6); max-width:360px; line-height:1.6; margin:0 auto 28px; }
+        a { display:inline-block; background:#06b6d4; color:#000; font-weight:700; padding:14px 32px; text-decoration:none; }
+    </style>
+</head>
+<body>
+    <div>
+        <h1>You are offline</h1>
+        <p>Calorio could not reach the server. Pages you opened before are still available. New entries need a connection.</p>
+        <a href="/dashboard/" onclick="location.reload(); return false;">Try again</a>
+    </div>
+</body>
+</html>

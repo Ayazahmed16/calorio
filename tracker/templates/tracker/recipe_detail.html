@@ -1,0 +1,42 @@
+{% extends "base.html" %}
+{% block title %}{{ r.name }}{% endblock %}
+{% block crumb %}Recipe{% endblock %}
+{% block content %}
+<a href="{% url 'recipes' %}" class="inline-flex items-center gap-1 font-mono text-xs text-cyan-100/60 hover:text-white mb-6"><span class="material-symbols-outlined" style="font-size:16px">arrow_back</span>All recipes</a>
+
+<div class="grid grid-cols-1 lg:grid-cols-5 gap-8">
+    <div class="lg:col-span-3">
+        <p class="font-mono text-[10px] uppercase tracking-widest text-cyan-100/40 mb-2">{{ r.category }}{% if r.category and r.area %} &middot; {% endif %}{{ r.area }}</p>
+        <h2 class="text-4xl md:text-5xl font-black tracking-tighter text-white mb-6">{{ r.name }}</h2>
+        {% if r.image %}<img src="{{ r.image }}" alt="{{ r.name }}" referrerpolicy="no-referrer" class="w-full max-h-[420px] object-cover mb-8 border border-white/10">{% endif %}
+
+        <h3 class="text-lg font-bold text-white mb-3">Ingredients</h3>
+        <ul class="grid grid-cols-1 sm:grid-cols-2 gap-x-8 mb-8">
+            {% for i in r.ingredients %}<li class="flex justify-between gap-3 py-2 border-b border-white/5 text-sm"><span class="text-white">{{ i.name }}</span><span class="font-mono text-xs text-cyan-100/50">{{ i.measure }}</span></li>{% endfor %}
+        </ul>
+
+        <h3 class="text-lg font-bold text-white mb-3">Method</h3>
+        <ol class="space-y-3 mb-6">
+            {% for step in r.instructions %}<li class="text-sm text-cyan-100/70 leading-relaxed">{{ step }}</li>{% endfor %}
+        </ol>
+        <div class="flex gap-4 font-mono text-xs">
+            {% if r.youtube %}<a href="{{ r.youtube }}" target="_blank" rel="noopener noreferrer" class="text-cyan-400 hover:underline">Watch video</a>{% endif %}
+            {% if r.source %}<a href="{{ r.source }}" target="_blank" rel="noopener noreferrer" class="text-cyan-400 hover:underline">Original source</a>{% endif %}
+        </div>
+    </div>
+
+    <form method="post" class="lg:col-span-2 bg-[#0f1d20] p-6 border border-white/10 shadow-2xl h-fit lg:sticky lg:top-24">
+        {% csrf_token %}
+        <h3 class="text-lg font-bold text-white mb-1">Log this recipe</h3>
+        <p class="font-mono text-[10px] leading-relaxed text-cyan-100/40 mb-5">Recipes don&rsquo;t include nutrition data. Enter the values for one serving (from a label or a calculator) and Calorio saves it as a food you can log.</p>
+        {% if form.non_field_errors %}<div class="mb-4 border-l-2 border-red-500 bg-red-500/10 px-4 py-3 font-mono text-xs text-red-400">{{ form.non_field_errors.0 }}</div>{% endif %}
+        {% for field in form %}
+        <div class="mb-4">
+            <label class="lbl" for="{{ field.id_for_label }}">{{ field.label }}</label>{{ field }}
+            {% if field.errors %}<p class="mt-2 font-mono text-xs text-red-400">{{ field.errors.0 }}</p>{% endif %}
+        </div>
+        {% endfor %}
+        <button type="submit" class="w-full mt-2 px-8 py-3 bg-cyan-500 text-black font-bold hover:bg-cyan-400 transition-all active:scale-95 cursor-pointer">Save &amp; log a serving</button>
+    </form>
+</div>
+{% endblock %}

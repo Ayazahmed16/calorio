@@ -1,0 +1,9 @@
+{% if page.has_other_pages %}
+<div class="flex items-center justify-between mt-6 font-mono text-xs text-cyan-100/60">
+    <span>Page {{ page.number }} of {{ page.paginator.num_pages }}</span>
+    <div class="flex gap-3">
+        {% if page.has_previous %}<a href="?{{ extra_qs }}page={{ page.previous_page_number }}" class="px-4 py-2 border border-white/10 hover:border-cyan-500/50 hover:text-white transition-all">Previous</a>{% endif %}
+        {% if page.has_next %}<a href="?{{ extra_qs }}page={{ page.next_page_number }}" class="px-4 py-2 border border-white/10 hover:border-cyan-500/50 hover:text-white transition-all">Next</a>{% endif %}
+    </div>
+</div>
+{% endif %}
